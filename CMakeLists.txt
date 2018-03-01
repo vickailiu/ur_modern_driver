@@ -20,7 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-
+find_package(emma_commons REQUIRED)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -135,6 +135,7 @@ endif()
 # include_directories(include)
 include_directories(include
   ${catkin_INCLUDE_DIRS}
+  ${emma_commons_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -169,6 +170,7 @@ add_executable(ur_driver ${${PROJECT_NAME}_SOURCES})
 target_link_libraries(ur_driver
   ur_hardware_interface
   ${catkin_LIBRARIES}
+  ${emma_commons_LIBRARIES}
  )
 
 #############

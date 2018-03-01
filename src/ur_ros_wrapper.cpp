@@ -55,6 +55,10 @@
 #include <tf/tf.h>
 #include <tf/transform_broadcaster.h>
 
+// LK modify
+#include "std_msgs/Float32.h"
+#include "emma_commons/NumberArray.h"
+
 class RosWrapper {
 protected:
 	UrDriver robot_;
@@ -653,13 +657,14 @@ private:
 				"joint_states", 1);
 		ros::Publisher wrench_pub = nh_.advertise<geometry_msgs::WrenchStamped>(
 				"wrench", 1);
+    ros::Publisher tool_pub = nh_.advertise<emma_commons::NumberArray>("tcp_pose", 1);
         ros::Publisher tool_vel_pub = nh_.advertise<geometry_msgs::TwistStamped>("tool_velocity", 1);
         static tf::TransformBroadcaster br;
 		while (ros::ok()) {
 			sensor_msgs::JointState joint_msg;
 			joint_msg.name = robot_.getJointNames();
 			geometry_msgs::WrenchStamped wrench_msg;
-            geometry_msgs::PoseStamped tool_pose_msg;
+//            geometry_msgs::PoseStamped tool_pose_msg;
 			std::mutex msg_lock; // The values are locked for reading in the class, so just use a dummy mutex
 			std::unique_lock<std::mutex> locker(msg_lock);
 			while (!robot_.rt_interface_->robot_state_->getDataPublished()) {
@@ -706,6 +711,10 @@ private:
             transform.setOrigin(tf::Vector3(tool_vector_actual[0], tool_vector_actual[1], tool_vector_actual[2]));
             transform.setRotation(quat);
             br.sendTransform(tf::StampedTransform(transform, joint_msg.header.stamp, base_frame_, tool_frame_));
+
+            emma_commons::NumberArray tool_pose_msg;
+            tool_pose_msg.values = tool_vector_actual;
+            tool_pub.publish(tool_pose_msg);
 
             //Publish tool velocity
             std::vector<double> tcp_speed =
