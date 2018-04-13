@@ -57,7 +57,7 @@
 
 // LK modify
 #include "std_msgs/Float32.h"
-#include "emma_commons/NumberArray.h"
+#include "emma_commons/DoubleArray.h"
 
 class RosWrapper {
 protected:
@@ -657,7 +657,7 @@ private:
 				"joint_states", 1);
 		ros::Publisher wrench_pub = nh_.advertise<geometry_msgs::WrenchStamped>(
 				"wrench", 1);
-    ros::Publisher tool_pub = nh_.advertise<emma_commons::NumberArray>("tcp_pose", 1);
+    ros::Publisher tool_pub = nh_.advertise<emma_commons::DoubleArray>("tcp_pose", 1);
         ros::Publisher tool_vel_pub = nh_.advertise<geometry_msgs::TwistStamped>("tool_velocity", 1);
         static tf::TransformBroadcaster br;
 		while (ros::ok()) {
@@ -712,7 +712,7 @@ private:
             transform.setRotation(quat);
             br.sendTransform(tf::StampedTransform(transform, joint_msg.header.stamp, base_frame_, tool_frame_));
 
-            emma_commons::NumberArray tool_pose_msg;
+            emma_commons::DoubleArray tool_pose_msg;
             tool_pose_msg.values = tool_vector_actual;
             tool_pub.publish(tool_pose_msg);
 
