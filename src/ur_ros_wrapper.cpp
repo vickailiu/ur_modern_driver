@@ -28,6 +28,7 @@
 #include <cmath>
 #include <chrono>
 #include <time.h>
+#include <std_msgs/Empty.h>
 
 #include "ros/ros.h"
 #include <ros/console.h>
@@ -50,6 +51,9 @@
 #include "std_msgs/String.h"
 #include <controller_manager/controller_manager.h>
 #include <realtime_tools/realtime_publisher.h>
+#include <std_srvs/Empty.h>
+#include "emma_commons/RobotState.h"
+#include "emma_commons/DoubleArray.h"
 
 /// TF
 #include <tf/tf.h>
@@ -57,7 +61,6 @@
 
 // LK modify
 #include "std_msgs/Float32.h"
-#include "emma_commons/NumberArray.h"
 
 class RosWrapper {
 protected:
@@ -74,6 +77,7 @@ protected:
 	ros::Subscriber urscript_sub_;
 	ros::ServiceServer io_srv_;
 	ros::ServiceServer payload_srv_;
+  ros::ServiceServer unlockProtStop_srv_;
 	std::thread* rt_publish_thread_;
 	std::thread* mb_publish_thread_;
 	double io_flag_delay_;
@@ -217,6 +221,8 @@ public:
 					&RosWrapper::setIO, this);
 			payload_srv_ = nh_.advertiseService("ur_driver/set_payload",
 					&RosWrapper::setPayload, this);
+      unlockProtStop_srv_ = nh_.advertiseService("ur_driver/unlock_protective_stop",
+          &RosWrapper::unlockProtectiveStop, this);
 		}
 	}
 
@@ -241,7 +247,7 @@ private:
 			actionlib::ServerGoalHandle<
 					control_msgs::FollowJointTrajectoryAction> gh) {
 		std::string buf;
-		print_info("on_goal");
+    print_info("is on_goal");
 		if (!robot_.sec_interface_->robot_state_->isReady()) {
 			result_.error_code = -100; //nothing is defined for this...?
 
@@ -348,7 +354,7 @@ private:
 
 		reorder_traj_joints(goal.trajectory);
 		
-		if (!start_positions_match(goal.trajectory, 0.01)) {
+    if (!start_positions_match(goal.trajectory, 0.1)) {
 			result_.error_code = result_.INVALID_GOAL;
 			result_.error_string = "Goal start doesn't match current pose";
 			gh.setRejected(result_, result_.error_string);
@@ -418,6 +424,11 @@ private:
 		}
 		return resp.success;
 	}
+
+ bool unlockProtectiveStop(std_srvs::EmptyRequest&, std_srvs::EmptyResponse&)
+ {
+  return robot_.unlockProtectiveStop();
+ }
 
 	bool setPayload(ur_msgs::SetPayloadRequest& req,
 			ur_msgs::SetPayloadResponse& resp) {
@@ -512,6 +523,7 @@ private:
 			std::vector<double> qActual = robot_.rt_interface_->robot_state_->getQActual();
 			if( fabs(traj.points[0].positions[i] - qActual[i]) > eps )
 			{
+        std::cout << i << ":" << traj.points[0].positions[i] << " vs " << qActual[i] << std::endl;
 				return false;
 			}
 		}
@@ -652,12 +664,13 @@ private:
 		}
 	}
 
-	void publishRTMsg() {
+  void publishRTMsg() {
+    ros::Publisher robot_state_pub = nh_.advertise<emma_commons::RobotState>("robot_current_state",1);
 		ros::Publisher joint_pub = nh_.advertise<sensor_msgs::JointState>(
 				"joint_states", 1);
 		ros::Publisher wrench_pub = nh_.advertise<geometry_msgs::WrenchStamped>(
 				"wrench", 1);
-    ros::Publisher tool_pub = nh_.advertise<emma_commons::NumberArray>("tcp_pose", 1);
+    ros::Publisher tool_pub = nh_.advertise<emma_commons::DoubleArray>("tcp_pose", 1);
         ros::Publisher tool_vel_pub = nh_.advertise<geometry_msgs::TwistStamped>("tool_velocity", 1);
         static tf::TransformBroadcaster br;
 		while (ros::ok()) {
@@ -712,7 +725,7 @@ private:
             transform.setRotation(quat);
             br.sendTransform(tf::StampedTransform(transform, joint_msg.header.stamp, base_frame_, tool_frame_));
 
-            emma_commons::NumberArray tool_pose_msg;
+            emma_commons::DoubleArray tool_pose_msg;
             tool_pose_msg.values = tool_vector_actual;
             tool_pub.publish(tool_pose_msg);
 
@@ -729,6 +742,29 @@ private:
             tool_twist.twist.angular.y = tcp_speed[4];
             tool_twist.twist.angular.z = tcp_speed[5];
             tool_vel_pub.publish(tool_twist);
+
+     emma_commons::RobotState robot_current_state;
+     robot_current_state.isPowerOnRobot = robot_.sec_interface_->robot_state_->isPowerOnRobot();
+     robot_current_state.isRealRobotEnabled = robot_.sec_interface_->robot_state_->isRealRobotEnabled();
+     robot_current_state.isEmergencyStopped = robot_.sec_interface_->robot_state_->isEmergencyStopped();
+     robot_current_state.isProtectiveStopped = robot_.sec_interface_->robot_state_->isProtectiveStopped();
+     robot_current_state.isProgramRunning = robot_.sec_interface_->robot_state_->isProgramRunning();
+     robot_current_state.isProgramPaused = robot_.sec_interface_->robot_state_->isProgramPaused();
+
+     std::vector<double> q_target = robot_.rt_interface_->robot_state_->getQTarget();
+     robot_current_state.target_joints.values = q_target;
+
+//     ROS_INFO("target %.6f,%.6f,%.6f,%.6f,%.6f,%.6f",robot_current_state.target_joints.values[0],
+//                                                     robot_current_state.target_joints.values[1],
+//                                                     robot_current_state.target_joints.values[2],
+//                                                     robot_current_state.target_joints.values[3],
+//                                                     robot_current_state.target_joints.values[4],
+//                                                     robot_current_state.target_joints.values[5]);
+
+     std::vector<double> q_actual = robot_.rt_interface_->robot_state_->getQActual();
+     robot_current_state.actual_joints.values = q_actual;
+
+     robot_state_pub.publish(robot_current_state);
 
 			robot_.rt_interface_->robot_state_->setDataPublished();
 		}
@@ -790,7 +826,12 @@ private:
 					print_error("Aborting trajectory");
 					robot_.stopTraj();
 					result_.error_code = result_.SUCCESSFUL;
-					result_.error_string = "Robot was halted";
+
+          if(robot_.sec_interface_->robot_state_->isEmergencyStopped())
+            result_.error_string = "EMERGENCY STOP";
+          else
+            result_.error_string = "PROTECTIVE STOP";
+
 					goal_handle_.setAborted(result_, result_.error_string);
 					has_goal_ = false;
 				}
