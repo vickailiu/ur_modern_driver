@@ -61,6 +61,10 @@
 
 // LK modify
 #include "std_msgs/Float32.h"
+<<<<<<< HEAD
+=======
+#include "emma_commons/DoubleArray.h"
+>>>>>>> fbc1e6992d14e096eb72156ab80079a5f90ee88e
 
 class RosWrapper {
 protected:
