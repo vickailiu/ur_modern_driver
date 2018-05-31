@@ -111,7 +111,7 @@ catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES ur_modern_driver
   CATKIN_DEPENDS hardware_interface controller_manager actionlib control_msgs geometry_msgs roscpp sensor_msgs trajectory_msgs ur_msgs
-#  DEPENDS ur_hardware_interface
+  DEPENDS ur_hardware_interface
 )
 
 ###########
