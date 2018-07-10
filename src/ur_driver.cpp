@@ -382,48 +382,47 @@ void UrDriver::setServojGain(double g){
 		}
 }
 
-bool UrDriver::unlockProtectiveStop() {
-  addrinfo info;
+bool UrDriver::sendDashboardCmd(const char* cmd) {
+	addrinfo info;
 
-  memset(&info, 0, sizeof(info));
-  info.ai_family = AF_UNSPEC;
-  info.ai_socktype = SOCK_STREAM;
+	memset(&info, 0, sizeof(info));
+	info.ai_family = AF_UNSPEC;
+	info.ai_socktype = SOCK_STREAM;
 
-  addrinfo* res = 0;
+	addrinfo* res = 0;
 
-  if(getaddrinfo(host_.c_str(), "29999", &info, &res) != 0 || !res)
-  {
-    perror("Could not get address for UR host");
-    return false;
-  }
+	if(getaddrinfo(host_.c_str(), "29999", &info, &res) != 0 || !res)
+	{
+		perror("Could not get address for UR host");
+		return false;
+	}
 
-  sockaddr_storage addr;
-  socklen_t addrlen = res->ai_addrlen;
-  memcpy(&addr, res->ai_addr, res->ai_addrlen);
+	sockaddr_storage addr;
+	socklen_t addrlen = res->ai_addrlen;
+	memcpy(&addr, res->ai_addr, res->ai_addrlen);
 
-  int fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+	int fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 
-  freeaddrinfo(res);
+	freeaddrinfo(res);
 
-  if(fd < 0)
-  {
-    perror("socket");
-    return false;
-  }
+	if(fd < 0)
+	{
+		perror("socket");
+		return false;
+	}
 
-  if(connect(fd, (const sockaddr*)&addr, addrlen) != 0)
-  {
-    perror("Could not connect to UR dashboard");
-    return false;
-  }
+	if(connect(fd, (const sockaddr*)&addr, addrlen) != 0)
+	{
+		perror("Could not connect to UR dashboard");
+		return false;
+	}
 
-  const char* cmd = "unlock protective stop\n";
-  if(write(fd, cmd, strlen(cmd)) != strlen(cmd))
-  {
-    perror("Could not write to UR dashboard");
-    return false;
-  }
+	if(write(fd, cmd, strlen(cmd)) != strlen(cmd))
+	{
+		perror("Could not write to UR dashboard");
+		return false;
+	}
 
-  close(fd);
-  return true;
+	close(fd);
+	return true;
 }

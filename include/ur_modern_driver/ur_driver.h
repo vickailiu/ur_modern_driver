@@ -99,7 +99,7 @@ public:
 	void setServojLookahead(double t);
 	void setServojGain(double g);
 
-  bool unlockProtectiveStop();
+  bool sendDashboardCmd(const char* cmd);
 };
 
 #endif /* UR_DRIVER_H_ */

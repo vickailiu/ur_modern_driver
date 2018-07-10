@@ -54,6 +54,7 @@
 #include <std_srvs/Empty.h>
 #include "emma_commons/RobotState.h"
 #include "emma_commons/DoubleArray.h"
+#include "emma_commons/URDashboard.h"
 
 /// TF
 #include <tf/tf.h>
@@ -77,7 +78,7 @@ protected:
 	ros::Subscriber urscript_sub_;
 	ros::ServiceServer io_srv_;
 	ros::ServiceServer payload_srv_;
-  ros::ServiceServer unlockProtStop_srv_;
+  ros::ServiceServer dashboard_srv_;
 	std::thread* rt_publish_thread_;
 	std::thread* mb_publish_thread_;
 	double io_flag_delay_;
@@ -220,9 +221,9 @@ public:
 			io_srv_ = nh_.advertiseService("ur_driver/set_io",
 					&RosWrapper::setIO, this);
 			payload_srv_ = nh_.advertiseService("ur_driver/set_payload",
-					&RosWrapper::setPayload, this);
-      unlockProtStop_srv_ = nh_.advertiseService("ur_driver/unlock_protective_stop",
-          &RosWrapper::unlockProtectiveStop, this);
+          &RosWrapper::setPayload, this);
+      dashboard_srv_ = nh_.advertiseService("ur_driver/dashboard_cmd",
+          &RosWrapper::sendDashboardCmd, this);
 		}
 	}
 
@@ -425,10 +426,10 @@ private:
 		return resp.success;
 	}
 
- bool unlockProtectiveStop(std_srvs::EmptyRequest&, std_srvs::EmptyResponse&)
- {
-  return robot_.unlockProtectiveStop();
- }
+  bool sendDashboardCmd(emma_commons::URDashboardRequest& req, emma_commons::URDashboardResponse&)
+	{
+    return robot_.sendDashboardCmd(req.cmd.c_str());
+	}
 
 	bool setPayload(ur_msgs::SetPayloadRequest& req,
 			ur_msgs::SetPayloadResponse& resp) {
