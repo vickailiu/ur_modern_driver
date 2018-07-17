@@ -745,6 +745,9 @@ private:
             tool_vel_pub.publish(tool_twist);
 
      emma_commons::RobotState robot_current_state;
+     robot_current_state.robot_mode = robot_.sec_interface_->robot_state_->getRobotMode();
+     robot_current_state.isRobotReady = robot_.sec_interface_->robot_state_->isReady();
+     robot_current_state.isRobotConnected = robot_.sec_interface_->robot_state_->isRobotConnected();
      robot_current_state.isPowerOnRobot = robot_.sec_interface_->robot_state_->isPowerOnRobot();
      robot_current_state.isRealRobotEnabled = robot_.sec_interface_->robot_state_->isRealRobotEnabled();
      robot_current_state.isEmergencyStopped = robot_.sec_interface_->robot_state_->isEmergencyStopped();
