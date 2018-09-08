@@ -122,7 +122,7 @@ protected:
 	std::vector<double> joint_position_command_;
 	std::vector<double> joint_velocity_command_;
 	std::vector<double> prev_joint_velocity_command_;
-		std::size_t num_joints_;
+	std::size_t num_joints_;
 	double robot_force_[3] = { 0., 0., 0. };
 	double robot_torque_[3] = { 0., 0., 0. };
 

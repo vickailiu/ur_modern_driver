@@ -40,7 +40,7 @@ UrCommunication::UrCommunication(std::condition_variable& msg_cond,
 	bcopy((char *) server_->h_addr, (char *)&pri_serv_addr_.sin_addr.s_addr, server_->h_length);
 	bcopy((char *) server_->h_addr, (char *)&sec_serv_addr_.sin_addr.s_addr, server_->h_length);
 	pri_serv_addr_.sin_port = htons(30001);
-	sec_serv_addr_.sin_port = htons(30002);
+	sec_serv_addr_.sin_port = htons(30001);
 	flag_ = 1;
 	setsockopt(pri_sockfd_, IPPROTO_TCP, TCP_NODELAY, (char *) &flag_,
 			sizeof(int));

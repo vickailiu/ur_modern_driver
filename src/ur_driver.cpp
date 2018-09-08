@@ -19,14 +19,14 @@
 #include "ur_modern_driver/ur_driver.h"
 
 UrDriver::UrDriver(std::condition_variable& rt_msg_cond,
-		std::condition_variable& msg_cond, std::string host,
-		unsigned int reverse_port, double servoj_time,
-		unsigned int safety_count_max, double max_time_step, double min_payload,
-		double max_payload, double servoj_lookahead_time, double servoj_gain) :
-		REVERSE_PORT_(reverse_port), maximum_time_step_(max_time_step), minimum_payload_(
-				min_payload), maximum_payload_(max_payload), servoj_time_(
-        servoj_time), servoj_lookahead_time_(servoj_lookahead_time), servoj_gain_(servoj_gain),
-    host_(host) {
+	std::condition_variable& msg_cond, std::string host,
+	unsigned int reverse_port, double servoj_time,
+	unsigned int safety_count_max, double max_time_step, double min_payload,
+	double max_payload, double servoj_lookahead_time, double servoj_gain) :
+	REVERSE_PORT_(reverse_port), maximum_time_step_(max_time_step), 
+	minimum_payload_(min_payload), maximum_payload_(max_payload),
+	servoj_time_(servoj_time), servoj_lookahead_time_(servoj_lookahead_time), servoj_gain_(servoj_gain),
+	host_(host) {
 	char buffer[256];
 	struct sockaddr_in serv_addr;
 	int n, flag;
@@ -34,8 +34,7 @@ UrDriver::UrDriver(std::condition_variable& rt_msg_cond,
 	firmware_version_ = 0;
 	reverse_connected_ = false;
 	executing_traj_ = false;
-	rt_interface_ = new UrRealtimeCommunication(rt_msg_cond, host,
-			safety_count_max);
+	rt_interface_ = new UrRealtimeCommunication(rt_msg_cond, host, safety_count_max);
 	new_sockfd_ = -1;
 	sec_interface_ = new UrCommunication(msg_cond, host);
 
@@ -154,6 +153,7 @@ bool UrDriver::uploadProg() {
 	sprintf(buf, "\tMULT_jointstate = %i\n", MULT_JOINTSTATE_);
 	cmd_str += buf;
 
+	cmd_str += "\tposition_deviation_warning(True,0.1)\n";
 	cmd_str += "\tSERVO_IDLE = 0\n";
 	cmd_str += "\tSERVO_RUNNING = 1\n";
 	cmd_str += "\tcmd_servo_state = SERVO_IDLE\n";
@@ -301,12 +301,12 @@ void UrDriver::setDigitalOut(unsigned int n, bool b) {
 	if (firmware_version_ < 2) {
 		sprintf(buf, "sec setOut():\n\tset_digital_out(%d, %s)\nend\n", n,
 				b ? "True" : "False");
-    } else if (n > 15) {
-        sprintf(buf,
-                "sec setOut():\n\tset_tool_digital_out(%d, %s)\nend\n",
-                n - 16, b ? "True" : "False");
+	} else if (n > 15) {
+		sprintf(buf,
+				"sec setOut():\n\tset_tool_digital_out(%d, %s)\nend\n",
+				n - 16, b ? "True" : "False");
 	} else if (n > 7) {
-        sprintf(buf, "sec setOut():\n\tset_configurable_digital_out(%d, %s)\nend\n",
+		sprintf(buf, "sec setOut():\n\tset_configurable_digital_out(%d, %s)\nend\n",
 				n - 8, b ? "True" : "False");
 
 	} else {

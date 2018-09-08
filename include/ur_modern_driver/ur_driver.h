@@ -53,7 +53,7 @@ private:
 	double servoj_lookahead_time_;
 	double servoj_gain_;
 
-  std::string host_;
+	std::string host_;
 
 public:
 	UrRealtimeCommunication* rt_interface_;
@@ -61,14 +61,13 @@ public:
 
 	UrDriver(std::condition_variable& rt_msg_cond,
 			std::condition_variable& msg_cond, std::string host,
-			unsigned int reverse_port = 50007, double servoj_time = 0.016, unsigned int safety_count_max =
-					12, double max_time_step = 0.08, double min_payload = 0.,
+			unsigned int reverse_port = 50007, double servoj_time = 0.016, unsigned int safety_count_max = 12,
+			double max_time_step = 0.08, double min_payload = 0.,
 			double max_payload = 1., double servoj_lookahead_time=0.03, double servoj_gain=300.);
 	bool start();
 	void halt();
 
-	void setSpeed(double q0, double q1, double q2, double q3, double q4,
-			double q5, double acc = 100.);
+	void setSpeed(double q0, double q1, double q2, double q3, double q4, double q5, double acc = 100.);
 
 	bool doTraj(std::vector<double> inp_timestamps,
 			std::vector<std::vector<double> > inp_positions,
@@ -99,7 +98,7 @@ public:
 	void setServojLookahead(double t);
 	void setServojGain(double g);
 
-  bool sendDashboardCmd(const char* cmd);
+	bool sendDashboardCmd(const char* cmd);
 };
 
 #endif /* UR_DRIVER_H_ */

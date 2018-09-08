@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+#include "stdio.h"
 #include "ur_modern_driver/robot_state.h"
 
 RobotState::RobotState(std::condition_variable& msg_cond) {
@@ -62,66 +63,65 @@ void RobotState::unpack(uint8_t* buf, unsigned int buf_length) {
 	return;
 }
 
-void RobotState::unpackRobotMessage(uint8_t * buf, unsigned int offset,
-		uint32_t len) {
-	offset += 5;
+void RobotState::unpackRobotMessage(uint8_t * buf, unsigned int offset, uint32_t len) {
+	unsigned int message_offset = 5;
 	uint64_t timestamp;
 	int8_t source, robot_message_type;
-	memcpy(&timestamp, &buf[offset], sizeof(timestamp));
-	offset += sizeof(timestamp);
-	memcpy(&source, &buf[offset], sizeof(source));
-	offset += sizeof(source);
-	memcpy(&robot_message_type, &buf[offset], sizeof(robot_message_type));
-	offset += sizeof(robot_message_type);
+	memcpy(&timestamp, &buf[offset+message_offset], sizeof(timestamp));
+	message_offset += sizeof(timestamp);
+	memcpy(&source, &buf[offset+message_offset], sizeof(source));
+	message_offset += sizeof(source);
+	memcpy(&robot_message_type, &buf[offset+message_offset], sizeof(robot_message_type));
+	message_offset += sizeof(robot_message_type);
+
 	switch (robot_message_type) {
-	case robotMessageType::ROBOT_MESSAGE_VERSION:
-		val_lock_.lock();
-		version_msg_.timestamp = timestamp;
-		version_msg_.source = source;
-		version_msg_.robot_message_type = robot_message_type;
-		RobotState::unpackRobotMessageVersion(buf, offset, len);
-		val_lock_.unlock();
-		break;
-	default:
-		break;
+		case robotMessageType::ROBOT_MESSAGE_VERSION:
+			val_lock_.lock();
+			version_msg_.timestamp = timestamp;
+			version_msg_.source = source;
+			version_msg_.robot_message_type = robot_message_type;
+			RobotState::unpackRobotMessageVersion(buf, offset+message_offset, len);
+			val_lock_.unlock();
+			break;
+		case robotMessageType::ROBOT_MESSAGE_KEY:
+			val_lock_.lock();
+			key_msg_.timestamp = timestamp;
+			key_msg_.source = source;
+			key_msg_.robot_message_type = robot_message_type;
+			RobotState::unpackRobotMessageKey(buf, offset, message_offset, len);
+			val_lock_.unlock();
+			break;
 	}
 
 }
 
-void RobotState::unpackRobotState(uint8_t * buf, unsigned int offset,
-		uint32_t len) {
+void RobotState::unpackRobotState(uint8_t * buf, unsigned int offset, uint32_t len) {
 	offset += 5;
 	while (offset < len) {
 		int32_t length;
 		uint8_t package_type;
 		memcpy(&length, &buf[offset], sizeof(length));
 		length = ntohl(length);
-		memcpy(&package_type, &buf[offset + sizeof(length)],
-				sizeof(package_type));
+		memcpy(&package_type, &buf[offset + sizeof(length)], sizeof(package_type));
 		switch (package_type) {
-		case packageType::ROBOT_MODE_DATA:
-			val_lock_.lock();
-			RobotState::unpackRobotMode(buf, offset + 5);
-			val_lock_.unlock();
-			break;
-
-		case packageType::MASTERBOARD_DATA:
-			val_lock_.lock();
-			RobotState::unpackRobotStateMasterboard(buf, offset + 5);
-			val_lock_.unlock();
-			break;
-		default:
-			break;
+			case packageType::ROBOT_MODE_DATA:
+				val_lock_.lock();
+				RobotState::unpackRobotMode(buf, offset + 5);
+				val_lock_.unlock();
+				break;
+			case packageType::MASTERBOARD_DATA:
+				val_lock_.lock();
+				RobotState::unpackRobotStateMasterboard(buf, offset + 5);
+				val_lock_.unlock();
+				break;
 		}
 		offset += length;
 	}
 	new_data_available_ = true;
 	pMsg_cond_->notify_all();
-
 }
 
-void RobotState::unpackRobotMessageVersion(uint8_t * buf, unsigned int offset,
-		uint32_t len) {
+void RobotState::unpackRobotMessageVersion(uint8_t * buf, unsigned int offset, uint32_t len) {
 	memcpy(&version_msg_.project_name_size, &buf[offset],
 			sizeof(version_msg_.project_name_size));
 	offset += sizeof(version_msg_.project_name_size);
@@ -144,6 +144,37 @@ void RobotState::unpackRobotMessageVersion(uint8_t * buf, unsigned int offset,
 	if (version_msg_.major_version < 2) {
 		robot_mode_running_ = robotStateTypeV18::ROBOT_RUNNING_MODE;
 	}
+}
+
+void RobotState::unpackRobotMessageKey(uint8_t * buf, unsigned int offset, unsigned int message_offset, uint32_t len) {
+	int robot_message_code, robot_message_argument;
+
+	memcpy(&robot_message_code, &buf[offset+message_offset], sizeof(robot_message_code));
+	robot_message_code = ntohl(robot_message_code);
+	message_offset += sizeof(robot_message_code);
+	key_msg_.robot_message_code = robot_message_code;
+
+	memcpy(&robot_message_argument, &buf[offset+message_offset], sizeof(robot_message_argument));
+	robot_message_code = ntohl(robot_message_argument);
+	message_offset += sizeof(robot_message_argument);
+	key_msg_.robot_message_argument = robot_message_argument;
+
+	unsigned char title_size;
+	memcpy(&title_size, &buf[offset+message_offset], sizeof(title_size));
+	message_offset += sizeof(title_size);
+	key_msg_.title_size = title_size;
+	int size = title_size;
+
+	char message_title[64];
+	memcpy(&message_title, &buf[offset+message_offset], sizeof(char) * size);
+	message_offset += size;
+	message_title[size] = '\0';
+	strcpy(key_msg_.message_title,message_title);
+
+	char text_message[64];
+	memcpy(&text_message, &buf[offset+message_offset], len - message_offset);
+	text_message[254] = '\0';
+	strcpy(key_msg_.text_message,text_message);
 }
 
 void RobotState::unpackRobotMode(uint8_t * buf, unsigned int offset) {
@@ -320,6 +351,17 @@ double RobotState::getVersion() {
 	val_lock_.unlock();
 	return ver;
 
+}
+
+key_message RobotState::getKeyMessage(){
+		key_message new_key_msg;
+		val_lock_.lock();
+		strcpy(new_key_msg.message_title,key_msg_.message_title);
+		strcpy(new_key_msg.text_message,key_msg_.text_message);
+		memset(key_msg_.message_title,'\0',64);
+		memset(key_msg_.text_message,'\0',64);
+		val_lock_.unlock();
+		return new_key_msg;
 }
 
 void RobotState::finishedReading() {

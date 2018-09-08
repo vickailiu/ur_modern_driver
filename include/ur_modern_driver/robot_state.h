@@ -109,6 +109,17 @@ struct version_message {
 	char build_date[25];
 };
 
+struct key_message {
+	uint64_t timestamp;
+	int8_t source;
+	int8_t robot_message_type;
+	int8_t robot_message_code;
+	int8_t robot_message_argument;
+	unsigned char title_size;
+	char message_title[64];
+	char text_message[64];
+};
+
 struct masterboard_data {
 	int digitalInputBits;
 	int digitalOutputBits;
@@ -150,6 +161,7 @@ struct robot_mode_data {
 
 class RobotState {
 private:
+	key_message key_msg_;
 	version_message version_msg_;
 	masterboard_data mb_data_;
 	robot_mode_data robot_mode_;
@@ -166,6 +178,7 @@ public:
 	RobotState(std::condition_variable& msg_cond);
 	~RobotState();
 	double getVersion();
+	key_message getKeyMessage();
 	double getTime();
 	std::vector<double> getQTarget();
 	int getDigitalInputBits();
@@ -208,8 +221,8 @@ public:
 
 	void unpack(uint8_t * buf, unsigned int buf_length);
 	void unpackRobotMessage(uint8_t * buf, unsigned int offset, uint32_t len);
-	void unpackRobotMessageVersion(uint8_t * buf, unsigned int offset,
-			uint32_t len);
+	void unpackRobotMessageVersion(uint8_t * buf, unsigned int offset, uint32_t len);
+	void unpackRobotMessageKey(uint8_t * buf, unsigned int offset, unsigned int message_offset, uint32_t len);
 	void unpackRobotState(uint8_t * buf, unsigned int offset, uint32_t len);
 	void unpackRobotStateMasterboard(uint8_t * buf, unsigned int offset);
 	void unpackRobotMode(uint8_t * buf, unsigned int offset);

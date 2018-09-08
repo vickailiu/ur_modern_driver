@@ -55,6 +55,7 @@
 #include "emma_commons/RobotState.h"
 #include "emma_commons/DoubleArray.h"
 #include "emma_commons/URDashboard.h"
+#include "emma_commons/URKeyMessage.h"
 
 /// TF
 #include <tf/tf.h>
@@ -76,6 +77,7 @@ protected:
 	control_msgs::FollowJointTrajectoryResult result_;
 	ros::Subscriber speed_sub_;
 	ros::Subscriber urscript_sub_;
+	ros::Subscriber key_sub;
 	ros::ServiceServer io_srv_;
 	ros::ServiceServer payload_srv_;
   ros::ServiceServer dashboard_srv_;
@@ -84,8 +86,8 @@ protected:
 	double io_flag_delay_;
 	double max_velocity_;
 	std::vector<double> joint_offsets_;
-    std::string base_frame_;
-    std::string tool_frame_;
+	std::string base_frame_;
+	std::string tool_frame_;
 	bool use_ros_control_;
 	std::thread* ros_control_thread_;
 	boost::shared_ptr<ros_control_ur::UrHardwareInterface> hardware_interface_;
@@ -104,11 +106,11 @@ public:
 		char buf[256];
 
 		if (ros::param::get("~prefix", joint_prefix)) {
-		    if (joint_prefix.length() > 0) {
-    			sprintf(buf, "Setting prefix to %s", joint_prefix.c_str());
-	    		print_info(buf);
-	        }	
-        }
+			if (joint_prefix.length() > 0) {
+				sprintf(buf, "Setting prefix to %s", joint_prefix.c_str());
+				print_info(buf);
+			}	
+		}
 		joint_names.push_back(joint_prefix + "shoulder_pan_joint");
 		joint_names.push_back(joint_prefix + "shoulder_lift_joint");
 		joint_names.push_back(joint_prefix + "elbow_joint");
@@ -182,17 +184,17 @@ public:
 		}
 		robot_.setServojGain(servoj_gain);
 
-        //Base and tool frames
-        base_frame_ = joint_prefix + "base_link";
-        tool_frame_ =  joint_prefix + "tool0_controller";
-        if (ros::param::get("~base_frame", base_frame_)) {
-            sprintf(buf, "Base frame set to: %s", base_frame_.c_str());
-            print_debug(buf);
-        }
-        if (ros::param::get("~tool_frame", tool_frame_)) {
-            sprintf(buf, "Tool frame set to: %s", tool_frame_.c_str());
-            print_debug(buf);
-        }
+		//Base and tool frames
+		base_frame_ = joint_prefix + "base_link";
+		tool_frame_ =  joint_prefix + "tool0_controller";
+		if (ros::param::get("~base_frame", base_frame_)) {
+			sprintf(buf, "Base frame set to: %s", base_frame_.c_str());
+			print_debug(buf);
+		}
+		if (ros::param::get("~tool_frame", tool_frame_)) {
+			sprintf(buf, "Tool frame set to: %s", tool_frame_.c_str());
+			print_debug(buf);
+		}
 
 		if (robot_.start()) {
 			if (use_ros_control_) {
@@ -221,9 +223,9 @@ public:
 			io_srv_ = nh_.advertiseService("ur_driver/set_io",
 					&RosWrapper::setIO, this);
 			payload_srv_ = nh_.advertiseService("ur_driver/set_payload",
-          &RosWrapper::setPayload, this);
-      dashboard_srv_ = nh_.advertiseService("ur_driver/dashboard_cmd",
-          &RosWrapper::sendDashboardCmd, this);
+		  &RosWrapper::setPayload, this);
+	  dashboard_srv_ = nh_.advertiseService("ur_driver/dashboard_cmd",
+		  &RosWrapper::sendDashboardCmd, this);
 		}
 	}
 
@@ -248,7 +250,7 @@ private:
 			actionlib::ServerGoalHandle<
 					control_msgs::FollowJointTrajectoryAction> gh) {
 		std::string buf;
-    print_info("is on_goal");
+	print_info("is on_goal");
 		if (!robot_.sec_interface_->robot_state_->isReady()) {
 			result_.error_code = -100; //nothing is defined for this...?
 
@@ -326,7 +328,7 @@ private:
 			print_error(result_.error_string);
 			return;
 		}
-        
+		
 		if (!has_velocities()) {
 			result_.error_code = result_.INVALID_GOAL;
 			result_.error_string = "Received a goal without velocities";
@@ -355,7 +357,7 @@ private:
 
 		reorder_traj_joints(goal.trajectory);
 		
-    if (!start_positions_match(goal.trajectory, 0.1)) {
+	if (!start_positions_match(goal.trajectory, 0.1)) {
 			result_.error_code = result_.INVALID_GOAL;
 			result_.error_string = "Goal start doesn't match current pose";
 			gh.setRejected(result_, result_.error_string);
@@ -428,7 +430,7 @@ private:
 
   bool sendDashboardCmd(emma_commons::URDashboardRequest& req, emma_commons::URDashboardResponse&)
 	{
-    return robot_.sendDashboardCmd(req.cmd.c_str());
+	return robot_.sendDashboardCmd(req.cmd.c_str());
 	}
 
 	bool setPayload(ur_msgs::SetPayloadRequest& req,
@@ -524,7 +526,7 @@ private:
 			std::vector<double> qActual = robot_.rt_interface_->robot_state_->getQActual();
 			if( fabs(traj.points[0].positions[i] - qActual[i]) > eps )
 			{
-        std::cout << i << ":" << traj.points[0].positions[i] << " vs " << qActual[i] << std::endl;
+		std::cout << i << ":" << traj.points[0].positions[i] << " vs " << qActual[i] << std::endl;
 				return false;
 			}
 		}
@@ -666,14 +668,14 @@ private:
 	}
 
   void publishRTMsg() {
-    ros::Publisher robot_state_pub = nh_.advertise<emma_commons::RobotState>("robot_current_state",1);
+	ros::Publisher robot_state_pub = nh_.advertise<emma_commons::RobotState>("robot_current_state",1);
 		ros::Publisher joint_pub = nh_.advertise<sensor_msgs::JointState>(
 				"joint_states", 1);
 		ros::Publisher wrench_pub = nh_.advertise<geometry_msgs::WrenchStamped>(
 				"wrench", 1);
-    ros::Publisher tool_pub = nh_.advertise<emma_commons::DoubleArray>("tcp_pose", 1);
-        ros::Publisher tool_vel_pub = nh_.advertise<geometry_msgs::TwistStamped>("tool_velocity", 1);
-        static tf::TransformBroadcaster br;
+	ros::Publisher tool_pub = nh_.advertise<emma_commons::DoubleArray>("tcp_pose", 1);
+		ros::Publisher tool_vel_pub = nh_.advertise<geometry_msgs::TwistStamped>("tool_velocity", 1);
+		static tf::TransformBroadcaster br;
 		while (ros::ok()) {
 			sensor_msgs::JointState joint_msg;
 			joint_msg.name = robot_.getJointNames();
@@ -705,58 +707,58 @@ private:
 			wrench_msg.wrench.torque.z = tcp_force[5];
 			wrench_pub.publish(wrench_msg);
 
-            // Tool vector: Actual Cartesian coordinates of the tool: (x,y,z,rx,ry,rz), where rx, ry and rz is a rotation vector representation of the tool orientation
-            std::vector<double> tool_vector_actual = robot_.rt_interface_->robot_state_->getToolVectorActual();
+			// Tool vector: Actual Cartesian coordinates of the tool: (x,y,z,rx,ry,rz), where rx, ry and rz is a rotation vector representation of the tool orientation
+			std::vector<double> tool_vector_actual = robot_.rt_interface_->robot_state_->getToolVectorActual();
 
-            //Create quaternion
-            tf::Quaternion quat;
-            double rx = tool_vector_actual[3];
-            double ry = tool_vector_actual[4];
-            double rz = tool_vector_actual[5];
-            double angle = std::sqrt(std::pow(rx,2) + std::pow(ry,2) + std::pow(rz,2));
-            if (angle < 1e-16) {
-                quat.setValue(0, 0, 0, 1);
-            } else {
-                quat.setRotation(tf::Vector3(rx/angle, ry/angle, rz/angle), angle);
-            }
+			//Create quaternion
+			tf::Quaternion quat;
+			double rx = tool_vector_actual[3];
+			double ry = tool_vector_actual[4];
+			double rz = tool_vector_actual[5];
+			double angle = std::sqrt(std::pow(rx,2) + std::pow(ry,2) + std::pow(rz,2));
+			if (angle < 1e-16) {
+				quat.setValue(0, 0, 0, 1);
+			} else {
+				quat.setRotation(tf::Vector3(rx/angle, ry/angle, rz/angle), angle);
+			}
 
-            //Create and broadcast transform
-            tf::Transform transform;
-            transform.setOrigin(tf::Vector3(tool_vector_actual[0], tool_vector_actual[1], tool_vector_actual[2]));
-            transform.setRotation(quat);
-            br.sendTransform(tf::StampedTransform(transform, joint_msg.header.stamp, base_frame_, tool_frame_));
+			//Create and broadcast transform
+			tf::Transform transform;
+			transform.setOrigin(tf::Vector3(tool_vector_actual[0], tool_vector_actual[1], tool_vector_actual[2]));
+			transform.setRotation(quat);
+			br.sendTransform(tf::StampedTransform(transform, joint_msg.header.stamp, base_frame_, tool_frame_));
 
-            emma_commons::DoubleArray tool_pose_msg;
-            tool_pose_msg.values = tool_vector_actual;
-            tool_pub.publish(tool_pose_msg);
+			emma_commons::DoubleArray tool_pose_msg;
+			tool_pose_msg.values = tool_vector_actual;
+			tool_pub.publish(tool_pose_msg);
 
-            //Publish tool velocity
-            std::vector<double> tcp_speed =
-                    robot_.rt_interface_->robot_state_->getTcpSpeedActual();
-            geometry_msgs::TwistStamped tool_twist;
-            tool_twist.header.frame_id = base_frame_;
-            tool_twist.header.stamp = joint_msg.header.stamp;
-            tool_twist.twist.linear.x = tcp_speed[0];
-            tool_twist.twist.linear.y = tcp_speed[1];
-            tool_twist.twist.linear.z = tcp_speed[2];
-            tool_twist.twist.angular.x = tcp_speed[3];
-            tool_twist.twist.angular.y = tcp_speed[4];
-            tool_twist.twist.angular.z = tcp_speed[5];
-            tool_vel_pub.publish(tool_twist);
+			//Publish tool velocity
+			std::vector<double> tcp_speed =
+					robot_.rt_interface_->robot_state_->getTcpSpeedActual();
+			geometry_msgs::TwistStamped tool_twist;
+			tool_twist.header.frame_id = base_frame_;
+			tool_twist.header.stamp = joint_msg.header.stamp;
+			tool_twist.twist.linear.x = tcp_speed[0];
+			tool_twist.twist.linear.y = tcp_speed[1];
+			tool_twist.twist.linear.z = tcp_speed[2];
+			tool_twist.twist.angular.x = tcp_speed[3];
+			tool_twist.twist.angular.y = tcp_speed[4];
+			tool_twist.twist.angular.z = tcp_speed[5];
+			tool_vel_pub.publish(tool_twist);
 
-     emma_commons::RobotState robot_current_state;
-     robot_current_state.robot_mode = robot_.sec_interface_->robot_state_->getRobotMode();
-     robot_current_state.isRobotReady = robot_.sec_interface_->robot_state_->isReady();
-     robot_current_state.isRobotConnected = robot_.sec_interface_->robot_state_->isRobotConnected();
-     robot_current_state.isPowerOnRobot = robot_.sec_interface_->robot_state_->isPowerOnRobot();
-     robot_current_state.isRealRobotEnabled = robot_.sec_interface_->robot_state_->isRealRobotEnabled();
-     robot_current_state.isEmergencyStopped = robot_.sec_interface_->robot_state_->isEmergencyStopped();
-     robot_current_state.isProtectiveStopped = robot_.sec_interface_->robot_state_->isProtectiveStopped();
-     robot_current_state.isProgramRunning = robot_.sec_interface_->robot_state_->isProgramRunning();
-     robot_current_state.isProgramPaused = robot_.sec_interface_->robot_state_->isProgramPaused();
+	 emma_commons::RobotState robot_current_state;
+	 robot_current_state.robot_mode = robot_.sec_interface_->robot_state_->getRobotMode();
+	 robot_current_state.isRobotReady = robot_.sec_interface_->robot_state_->isReady();
+	 robot_current_state.isRobotConnected = robot_.sec_interface_->robot_state_->isRobotConnected();
+	 robot_current_state.isPowerOnRobot = robot_.sec_interface_->robot_state_->isPowerOnRobot();
+	 robot_current_state.isRealRobotEnabled = robot_.sec_interface_->robot_state_->isRealRobotEnabled();
+	 robot_current_state.isEmergencyStopped = robot_.sec_interface_->robot_state_->isEmergencyStopped();
+	 robot_current_state.isProtectiveStopped = robot_.sec_interface_->robot_state_->isProtectiveStopped();
+	 robot_current_state.isProgramRunning = robot_.sec_interface_->robot_state_->isProgramRunning();
+	 robot_current_state.isProgramPaused = robot_.sec_interface_->robot_state_->isProgramPaused();
 
-     std::vector<double> q_target = robot_.rt_interface_->robot_state_->getQTarget();
-     robot_current_state.target_joints.values = q_target;
+	 std::vector<double> q_target = robot_.rt_interface_->robot_state_->getQTarget();
+	 robot_current_state.target_joints.values = q_target;
 
 //     ROS_INFO("target %.6f,%.6f,%.6f,%.6f,%.6f,%.6f",robot_current_state.target_joints.values[0],
 //                                                     robot_current_state.target_joints.values[1],
@@ -765,10 +767,10 @@ private:
 //                                                     robot_current_state.target_joints.values[4],
 //                                                     robot_current_state.target_joints.values[5]);
 
-     std::vector<double> q_actual = robot_.rt_interface_->robot_state_->getQActual();
-     robot_current_state.actual_joints.values = q_actual;
+	 std::vector<double> q_actual = robot_.rt_interface_->robot_state_->getQActual();
+	 robot_current_state.actual_joints.values = q_actual;
 
-     robot_state_pub.publish(robot_current_state);
+	 robot_state_pub.publish(robot_current_state);
 
 			robot_.rt_interface_->robot_state_->setDataPublished();
 		}
@@ -778,6 +780,8 @@ private:
 		bool warned = false;
 		ros::Publisher io_pub = nh_.advertise<ur_msgs::IOStates>(
 				"ur_driver/io_states", 1);
+		ros::Publisher key_message_pub = nh_.advertise<emma_commons::URKeyMessage>(
+				 "key_message",10);
 
 		while (ros::ok()) {
 			ur_msgs::IOStates io_msg;
@@ -817,6 +821,15 @@ private:
 			io_msg.analog_out_states.push_back(ana);
 			io_pub.publish(io_msg);
 
+	  // publish ur key message if needed
+	  key_message key_msg_rob = robot_.sec_interface_->robot_state_->getKeyMessage();
+	  if (std::strcmp(key_msg_rob.message_title,"")){
+		  emma_commons::URKeyMessage key_msg;
+		  key_msg.message_title = key_msg_rob.message_title;
+		  key_msg.text_message = key_msg_rob.text_message;
+		  key_message_pub.publish(key_msg);
+	  }
+
 			if (robot_.sec_interface_->robot_state_->isEmergencyStopped()
 					or robot_.sec_interface_->robot_state_->isProtectiveStopped()) {
 				if (robot_.sec_interface_->robot_state_->isEmergencyStopped()
@@ -831,10 +844,10 @@ private:
 					robot_.stopTraj();
 					result_.error_code = result_.SUCCESSFUL;
 
-          if(robot_.sec_interface_->robot_state_->isEmergencyStopped())
-            result_.error_string = "EMERGENCY STOP";
-          else
-            result_.error_string = "PROTECTIVE STOP";
+		  if(robot_.sec_interface_->robot_state_->isEmergencyStopped())
+			result_.error_string = "EMERGENCY STOP";
+		  else
+			result_.error_string = "PROTECTIVE STOP";
 
 					goal_handle_.setAborted(result_, result_.error_string);
 					has_goal_ = false;
