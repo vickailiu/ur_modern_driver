@@ -64,24 +64,35 @@ void RobotState::unpack(uint8_t* buf, unsigned int buf_length) {
 
 void RobotState::unpackRobotMessage(uint8_t * buf, unsigned int offset,
 		uint32_t len) {
-	offset += 5;
+    unsigned int message_offset = 5;
 	uint64_t timestamp;
 	int8_t source, robot_message_type;
-	memcpy(&timestamp, &buf[offset], sizeof(timestamp));
-	offset += sizeof(timestamp);
-	memcpy(&source, &buf[offset], sizeof(source));
-	offset += sizeof(source);
-	memcpy(&robot_message_type, &buf[offset], sizeof(robot_message_type));
-	offset += sizeof(robot_message_type);
+    memcpy(&timestamp, &buf[offset+message_offset], sizeof(timestamp));
+    message_offset += sizeof(timestamp);
+    memcpy(&source, &buf[offset+message_offset], sizeof(source));
+    message_offset += sizeof(source);
+    memcpy(&robot_message_type, &buf[offset+message_offset], sizeof(robot_message_type));
+    message_offset += sizeof(robot_message_type);
+
+//    printf("%lu: received message with type %d and length %lu\n", timestamp, robot_message_type, len);
+
 	switch (robot_message_type) {
 	case robotMessageType::ROBOT_MESSAGE_VERSION:
 		val_lock_.lock();
 		version_msg_.timestamp = timestamp;
 		version_msg_.source = source;
 		version_msg_.robot_message_type = robot_message_type;
-		RobotState::unpackRobotMessageVersion(buf, offset, len);
+        RobotState::unpackRobotMessageVersion(buf, offset+message_offset, len);
 		val_lock_.unlock();
 		break;
+    case robotMessageType::ROBOT_MESSAGE_KEY:
+        val_lock_.lock();
+        key_msg_.timestamp = timestamp;
+        key_msg_.source = source;
+        key_msg_.robot_message_type = robot_message_type;
+        RobotState::unpackRobotMessageKey(buf, offset, message_offset, len);
+        val_lock_.unlock();
+        break;
 	default:
 		break;
 	}
@@ -144,6 +155,69 @@ void RobotState::unpackRobotMessageVersion(uint8_t * buf, unsigned int offset,
 	if (version_msg_.major_version < 2) {
 		robot_mode_running_ = robotStateTypeV18::ROBOT_RUNNING_MODE;
 	}
+}
+
+void RobotState::unpackRobotMessageKey(uint8_t * buf, unsigned int offset, unsigned int message_offset,
+    uint32_t len) {
+//    memcpy(&key_msg_.robot_message_code, &buf[offset+message_offset], sizeof(key_msg_.robot_message_code));
+//    key_msg_.robot_message_code = ntohl(key_msg_.robot_message_code);
+//    message_offset += sizeof(key_msg_.robot_message_code);
+
+//    memcpy(&key_msg_.robot_message_argument, &buf[offset+message_offset], sizeof(key_msg_.robot_message_argument));
+//    key_msg_.robot_message_argument = ntohl(key_msg_.robot_message_argument);
+//    message_offset += sizeof(key_msg_.robot_message_argument);
+
+//    memcpy(&key_msg_.title_size, &buf[offset+message_offset], sizeof(key_msg_.title_size));
+//    message_offset += sizeof(key_msg_.title_size);
+//    int title_size = key_msg_.title_size;
+
+//    memcpy(&key_msg_.message_title, &buf[offset+message_offset], sizeof(char) * title_size);
+//    message_offset += title_size;
+//    key_msg_.message_title[key_msg_.title_size] = '\0';
+//    memcpy(&key_msg_.text_message, &buf[offset+message_offset], len - message_offset);
+//    key_msg_.text_message[len - message_offset] = '\0';
+//    printf("%d, %d, %d, %s, %s\n",
+//           key_msg_.robot_message_code, key_msg_.robot_message_argument,
+//           title_size, key_msg_.message_title,
+//           key_msg_.text_message);
+
+
+    int robot_message_code, robot_message_argument;
+
+    memcpy(&robot_message_code, &buf[offset+message_offset], sizeof(robot_message_code));
+    robot_message_code = ntohl(robot_message_code);
+    message_offset += sizeof(robot_message_code);
+    key_msg_.robot_message_code = robot_message_code;
+
+    memcpy(&robot_message_argument, &buf[offset+message_offset], sizeof(robot_message_argument));
+    robot_message_code = ntohl(robot_message_argument);
+    message_offset += sizeof(robot_message_argument);
+    key_msg_.robot_message_argument = robot_message_argument;
+
+    unsigned char title_size;
+    memcpy(&title_size, &buf[offset+message_offset], sizeof(title_size));
+    message_offset += sizeof(title_size);
+    key_msg_.title_size = title_size;
+    int size = title_size;
+
+    //printf("%d, %d, %d, %d\n",key_msg_.robot_message_code, key_msg_.robot_message_argument,key_msg_.title_size, size);
+
+    char message_title[64];
+    memcpy(&message_title, &buf[offset+message_offset], sizeof(char) * size);
+    message_offset += size;
+    message_title[size] = '\0';
+    //printf("%s\n", message_title);
+    strcpy(key_msg_.message_title,message_title);
+    //printf("%s\n",key_msg_.message_title);
+
+
+    char text_message[64];
+    memcpy(&text_message, &buf[offset+message_offset], len - message_offset);
+    text_message[254] = '\0';
+    //printf("%s\n", text_message);
+    strcpy(key_msg_.text_message,text_message);
+    //printf("%s\n",key_msg_.text_message);
+
 }
 
 void RobotState::unpackRobotMode(uint8_t * buf, unsigned int offset) {
@@ -320,6 +394,17 @@ double RobotState::getVersion() {
 	val_lock_.unlock();
 	return ver;
 
+}
+
+key_message RobotState::getKeyMessage(){
+    key_message new_key_msg;
+    val_lock_.lock();
+    strcpy(new_key_msg.message_title,key_msg_.message_title);
+    strcpy(new_key_msg.text_message,key_msg_.text_message);
+    memset(key_msg_.message_title,'\0',64);
+    memset(key_msg_.text_message,'\0',64);
+    val_lock_.unlock();
+    return new_key_msg;
 }
 
 void RobotState::finishedReading() {
