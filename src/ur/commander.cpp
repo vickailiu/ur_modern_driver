@@ -60,6 +60,19 @@ bool URCommander::stopj(double a)
   return write(s);
 }
 
+bool URCommander::sendDashboardCmd(const std::string &s)
+{
+  size_t len = s.size();
+  const uint8_t *data = reinterpret_cast<const uint8_t *>(s.c_str());
+  size_t written;
+  if (!stream_dashboard_.write(data, len, written))
+  {
+    LOG_INFO("Dashboard Message Failed to Send");
+    return false;
+  }
+  return true;
+}
+
 bool URCommander_V1_X::speedj(std::array<double, 6> &speeds, double acceleration)
 {
   std::ostringstream out;

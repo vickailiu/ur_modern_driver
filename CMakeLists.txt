@@ -25,6 +25,9 @@ find_package(catkin REQUIRED
 )
 
 
+find_package(emma_commons REQUIRED)
+
+
 catkin_package(
   INCLUDE_DIRS
     include
@@ -68,13 +71,14 @@ endif()
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${emma_commons_INCLUDE_DIRS}
 )
 
 # Hardware Interface
 add_library(ur_hardware_interface
   src/ros/controller.cpp
   src/ros/hardware_interface.cpp)
-target_link_libraries(ur_hardware_interface ${catkin_LIBRARIES})
+target_link_libraries(ur_hardware_interface ${catkin_LIBRARIES} ${emma_commons_LIBRARIES})
 
 
 set(${PROJECT_NAME}_SOURCES

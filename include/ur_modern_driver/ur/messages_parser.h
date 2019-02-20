@@ -42,6 +42,10 @@ public:
         result.reset(vm);
         break;
       }
+      case robot_message_type::ROBOT_MESSAGE_KEY:
+      {
+        LOG_INFO("key message received");
+      }
 
       default:
         return false;

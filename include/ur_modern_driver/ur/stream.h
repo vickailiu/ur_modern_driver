@@ -10,8 +10,9 @@
 
 class URStream : public TCPSocket
 {
-private:
+public:
   std::string host_;
+private:
   int port_;
   std::mutex write_mutex_, read_mutex_;
 
