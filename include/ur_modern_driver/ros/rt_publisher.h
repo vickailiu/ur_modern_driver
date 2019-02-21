@@ -41,7 +41,6 @@ private:
   bool publishTool(RTShared& packet, Time& t);
   bool publishTransform(RTShared& packet, Time& t);
   bool publishTemperature(RTShared& packet, Time& t);
-  bool publishTcp(RTShared& packet, Time& t);
 
   bool publish(RTShared& packet);
 

@@ -70,6 +70,13 @@ bool RTPublisher::publishTransform(RTShared& packet, Time& t)
 
   transform_broadcaster_.sendTransform(StampedTransform(transform, t, base_frame_, tool_frame_));
 
+  emma_commons::DoubleArray tool_pose_msg;
+  tool_pose_msg.values = {
+    tv.position.x, tv.position.y, tv.position.z,
+    tv.rotation.x / angle, tv.rotation.y / angle, tv.rotation.z / angle
+  };
+  tcp_pub_.publish(tool_pose_msg);
+
   return true;
 }
 
@@ -88,19 +95,6 @@ bool RTPublisher::publishTemperature(RTShared& packet, Time& t)
   return true;
 }
 
-bool RTPublisher::publishTcp(RTShared& packet, Time& t)
-{
-  emma_commons::DoubleArray tool_pose_msg;
-  tool_pose_msg.values = { packet.tcp_speed_actual.position.x,
-                           packet.tcp_speed_actual.position.y,
-                           packet.tcp_speed_actual.position.z,
-                           packet.tcp_speed_actual.rotation.x,
-                           packet.tcp_speed_actual.rotation.y,
-                           packet.tcp_speed_actual.rotation.z };
-  tcp_pub_.publish(tool_pose_msg);
-  return true;
-}
-
 bool RTPublisher::publish(RTShared& packet)
 {
   Time time = Time::now();
@@ -108,7 +102,6 @@ bool RTPublisher::publish(RTShared& packet)
   if (!temp_only_)
   {
     res = publishJoints(packet, time) && publishWrench(packet, time) && publishTool(packet, time) &&
-          publishTcp(packet, time) &&
           publishTransform(packet, time);
   }
 
