@@ -91,12 +91,12 @@ bool RTPublisher::publishTemperature(RTShared& packet, Time& t)
 bool RTPublisher::publishTcp(RTShared& packet, Time& t)
 {
   emma_commons::DoubleArray tool_pose_msg;
-  tool_pose_msg.values[0] = packet.tcp_speed_actual.position.x;
-  tool_pose_msg.values[1] = packet.tcp_speed_actual.position.y;
-  tool_pose_msg.values[2] = packet.tcp_speed_actual.position.z;
-  tool_pose_msg.values[3] = packet.tcp_speed_actual.rotation.x;
-  tool_pose_msg.values[4] = packet.tcp_speed_actual.rotation.y;
-  tool_pose_msg.values[5] = packet.tcp_speed_actual.rotation.z;
+  tool_pose_msg.values = { packet.tcp_speed_actual.position.x,
+                           packet.tcp_speed_actual.position.y,
+                           packet.tcp_speed_actual.position.z,
+                           packet.tcp_speed_actual.rotation.x,
+                           packet.tcp_speed_actual.rotation.y,
+                           packet.tcp_speed_actual.rotation.z };
   tcp_pub_.publish(tool_pose_msg);
   return true;
 }
@@ -108,8 +108,8 @@ bool RTPublisher::publish(RTShared& packet)
   if (!temp_only_)
   {
     res = publishJoints(packet, time) && publishWrench(packet, time) && publishTool(packet, time) &&
-          publishTransform(packet, time) &&
-          publishTcp(packet, time);
+          publishTcp(packet, time) &&
+          publishTransform(packet, time);
   }
 
   return res && publishTemperature(packet, time);
