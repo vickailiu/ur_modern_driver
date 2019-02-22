@@ -8,16 +8,14 @@ class URCommander
 {
 private:
   URStream &stream_;
-  URStream stream_dashboard_;
 
 protected:
   bool write(const std::string &s);
   void formatArray(std::ostringstream &out, std::array<double, 6> &values);
 
 public:
-  URCommander(URStream &stream) : stream_(stream), stream_dashboard_(stream.host_, 29999)
+  URCommander(URStream &stream) : stream_(stream)
   {
-//    URStream stream_new = URStream(stream.host_, 29999);
   }
 
   virtual bool speedj(std::array<double, 6> &speeds, double acceleration) = 0;
@@ -30,7 +28,6 @@ public:
   bool setToolVoltage(uint8_t voltage);
   bool setFlag(uint8_t pin, bool value);
   bool setPayload(double value);
-  bool sendDashboardCmd(const std::string &s);
 
 };
 

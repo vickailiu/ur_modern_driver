@@ -23,7 +23,7 @@ private:
   bool consume(VersionMessage& vm)
   {
     LOG_INFO("Got VersionMessage:");
-    LOG_INFO("project name: %d", vm.project_name.c_str());
+    LOG_INFO("project name: %s", vm.project_name.c_str());
     LOG_INFO("version: %u.%u.%d", vm.major_version, vm.minor_version, vm.svn_version);
     LOG_INFO("build date: %s", vm.build_date.c_str());
 
@@ -44,8 +44,7 @@ private:
   }
 
 public:
-  URFactory(std::string& host)
-  : stream_(host, UR_PRIMARY_PORT)
+  URFactory(std::string& host) : stream_(host, UR_PRIMARY_PORT)
   {
     URProducer<MessagePacket> prod(stream_, parser_);
     std::vector<unique_ptr<MessagePacket>> results;
