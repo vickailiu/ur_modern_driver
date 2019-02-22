@@ -9,6 +9,7 @@
 #include "ur_modern_driver/ros/action_server.h"
 #include "ur_modern_driver/ros/controller.h"
 #include "ur_modern_driver/ros/io_service.h"
+#include "ur_modern_driver/ros/dashboard_service.h"
 #include "ur_modern_driver/ros/lowbandwidth_trajectory_follower.h"
 #include "ur_modern_driver/ros/mb_publisher.h"
 #include "ur_modern_driver/ros/rt_publisher.h"
@@ -38,6 +39,7 @@ static const std::string SHUTDOWN_ON_DISCONNECT_ARG("~shutdown_on_disconnect");
 static const std::vector<std::string> DEFAULT_JOINTS = { "shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint",
                                                          "wrist_1_joint",      "wrist_2_joint",       "wrist_3_joint" };
 
+static const int UR_DB_PORT = 29999;
 static const int UR_SECONDARY_PORT = 30002;
 static const int UR_RT_PORT = 30003;
 
@@ -201,13 +203,28 @@ int main(int argc, char **argv)
   MultiConsumer<StatePacket> state_cons(state_vec);
   Pipeline<StatePacket> state_pl(state_prod, state_cons, "StatePacket", *notifier);
 
+  auto fake_state_parser = factory.getStateParser();
+  URStream dashboard_stream(args.host, UR_DB_PORT);
+  URProducer<StatePacket> fake_state_prod(dashboard_stream, *fake_state_parser);
+//  MBPublisher state_pub;
+
+//  ServiceStopper service_stopper(services);
+
+  vector<IConsumer<StatePacket> *> fake_state_vec; //{ &state_pub, &service_stopper };
+  MultiConsumer<StatePacket> fake_state_cons(fake_state_vec);
+  Pipeline<StatePacket> fake_state_pl(fake_state_prod, fake_state_cons, "FakeStatePacket", *notifier);
+
   LOG_INFO("Starting main loop");
 
   rt_pl.run();
   state_pl.run();
+  fake_state_pl.run();
 
   auto state_commander = factory.getCommander(state_stream);
   IOService io_service(*state_commander);
+
+  auto dashboard_commander = factory.getCommander(dashboard_stream);
+  DashboardService dashboard_service(*dashboard_commander);
 
   if (action_server)
     action_server->start();
@@ -218,6 +235,7 @@ int main(int argc, char **argv)
 
   rt_pl.stop();
   state_pl.stop();
+  fake_state_pl.stop();
 
   if (controller)
     delete controller;

@@ -49,3 +49,19 @@ public:
   int32_t svn_version;
   std::string build_date;
 };
+
+class KeyMessage : public MessagePacket
+{
+public:
+  KeyMessage(uint64_t timestamp, uint8_t source) : MessagePacket(timestamp, source)
+  {
+  }
+
+  virtual bool parseWith(BinParser& bp);
+  virtual bool consumeWith(URMessagePacketConsumer& consumer);
+
+  int8_t robot_message_code;
+  int8_t robot_message_argument;
+  std::string message_title;
+  std::string text_message;
+};

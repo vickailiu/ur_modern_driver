@@ -19,7 +19,6 @@ private:
   URCommander& commander_;
   ros::ServiceServer io_service_;
   ros::ServiceServer payload_service_;
-  ros::ServiceServer dashboard_service_;
 
   bool setIO(ur_msgs::SetIORequest& req, ur_msgs::SetIOResponse& resp)
   {
@@ -54,18 +53,11 @@ private:
     return (resp.success = commander_.setPayload(req.payload));
   }
 
-  bool sendDashboardCmd(emma_commons::URDashboardRequest& req, emma_commons::URDashboardResponse& resp)
-  {
-    LOG_INFO("sendDashboardCmd called");
-    return (resp.result = commander_.sendDashboardCmd(req.cmd));
-  }
-
 public:
   IOService(URCommander& commander)
     : commander_(commander)
     , io_service_(nh_.advertiseService("ur_driver/set_io", &IOService::setIO, this))
     , payload_service_(nh_.advertiseService("ur_driver/set_payload", &IOService::setPayload, this))
-    , dashboard_service_(nh_.advertiseService("ur_driver/dashboard_cmd", &IOService::sendDashboardCmd, this))
   {
   }
 };

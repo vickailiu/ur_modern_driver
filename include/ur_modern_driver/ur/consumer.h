@@ -47,4 +47,6 @@ public:
   }
 
   virtual bool consume(VersionMessage& message) = 0;
+  virtual bool consume(KeyMessage& message) = 0;
+
 };

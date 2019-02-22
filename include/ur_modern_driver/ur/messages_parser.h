@@ -45,6 +45,10 @@ public:
       case robot_message_type::ROBOT_MESSAGE_KEY:
       {
         LOG_INFO("key message received");
+        KeyMessage* km = new KeyMessage(timestamp, source);
+        parsed = km->parseWith(bp);
+        result.reset(km);
+        break;
       }
 
       default:
