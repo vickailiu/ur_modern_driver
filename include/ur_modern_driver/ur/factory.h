@@ -9,16 +9,11 @@
 #include "ur_modern_driver/ur/state_parser.h"
 #include "ur_modern_driver/ur/stream.h"
 
-#include "emma_commons/URKeyMessage.h"
-
 static const int UR_PRIMARY_PORT = 30001;
 
 class URFactory : private URMessagePacketConsumer
 {
 private:
-  NodeHandle nh_;
-  Publisher key_message_pub_;
-
   URStream stream_;
   URMessageParser parser_;
 
@@ -38,19 +33,6 @@ private:
     return true;
   }
 
-  bool consume(KeyMessage& km)
-  {
-    LOG_INFO("Got KeyMessage:");
-    LOG_INFO("robot message code: %d", km.robot_message_code);
-    LOG_INFO("robot message argument: %d", km.robot_message_argument);
-    LOG_INFO("message title: %s", km.message_title.c_str());
-    LOG_INFO("text message: %s", km.text_message.c_str());
-
-    // key_message_pub_.publish
-
-    return true;
-  }
-
   void setupConsumer()
   {
   }
@@ -64,7 +46,6 @@ private:
 public:
   URFactory(std::string& host)
   : stream_(host, UR_PRIMARY_PORT)
-  , key_message_pub_(nh_.advertise<emma_commons::URKeyMessage>("ur_driver/key_message", 1))
   {
     URProducer<MessagePacket> prod(stream_, parser_);
     std::vector<unique_ptr<MessagePacket>> results;
@@ -121,6 +102,11 @@ public:
       else
         return std::unique_ptr<URParser<StatePacket>>(new URStateParser_V3_5);
     }
+  }
+
+  std::unique_ptr<URParser<MessagePacket>> getMessageParser()
+  {
+    return std::unique_ptr<URParser<MessagePacket>>(new URMessageParser);
   }
 
   std::unique_ptr<URParser<RTPacket>> getRTParser()

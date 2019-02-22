@@ -14,6 +14,7 @@
 #include "ur_modern_driver/ros/mb_publisher.h"
 #include "ur_modern_driver/ros/rt_publisher.h"
 #include "ur_modern_driver/ros/service_stopper.h"
+#include "ur_modern_driver/ros/key_publisher.h"
 #include "ur_modern_driver/ros/trajectory_follower.h"
 #include "ur_modern_driver/ros/urscript_handler.h"
 #include "ur_modern_driver/ur/commander.h"
@@ -191,7 +192,7 @@ int main(int argc, char **argv)
   MultiConsumer<RTPacket> rt_cons(rt_vec);
   Pipeline<RTPacket> rt_pl(rt_prod, rt_cons, "RTPacket", *notifier);
 
-  // Message packets
+  // State packets
   auto state_parser = factory.getStateParser();
   URStream state_stream(args.host, UR_SECONDARY_PORT);
   URProducer<StatePacket> state_prod(state_stream, *state_parser);
@@ -203,26 +204,26 @@ int main(int argc, char **argv)
   MultiConsumer<StatePacket> state_cons(state_vec);
   Pipeline<StatePacket> state_pl(state_prod, state_cons, "StatePacket", *notifier);
 
-  auto fake_state_parser = factory.getStateParser();
-  URStream dashboard_stream(args.host, UR_DB_PORT);
-  URProducer<StatePacket> fake_state_prod(dashboard_stream, *fake_state_parser);
-//  MBPublisher state_pub;
+  // Message packets
+  auto message_parser = factory.getMessageParser();
+  URStream message_stream(args.host, UR_PRIMARY_PORT);
+  URProducer<MessagePacket> message_prod(message_stream, *message_parser);
+  KeyPublisher key_pub;
 
-//  ServiceStopper service_stopper(services);
-
-  vector<IConsumer<StatePacket> *> fake_state_vec; //{ &state_pub, &service_stopper };
-  MultiConsumer<StatePacket> fake_state_cons(fake_state_vec);
-  Pipeline<StatePacket> fake_state_pl(fake_state_prod, fake_state_cons, "FakeStatePacket", *notifier);
+  vector<IConsumer<MessagePacket> *> message_vec{ &key_pub };
+  MultiConsumer<MessagePacket> message_cons(message_vec);
+  Pipeline<MessagePacket> message_pl(message_prod, message_cons, "MessagePacket", *notifier);
 
   LOG_INFO("Starting main loop");
 
   rt_pl.run();
   state_pl.run();
-  fake_state_pl.run();
+  message_pl.run();
 
   auto state_commander = factory.getCommander(state_stream);
   IOService io_service(*state_commander);
 
+  URStream dashboard_stream(args.host, UR_DB_PORT);
   auto dashboard_commander = factory.getCommander(dashboard_stream);
   DashboardService dashboard_service(*dashboard_commander);
 
@@ -235,7 +236,7 @@ int main(int argc, char **argv)
 
   rt_pl.stop();
   state_pl.stop();
-  fake_state_pl.stop();
+  message_pl.stop();
 
   if (controller)
     delete controller;
