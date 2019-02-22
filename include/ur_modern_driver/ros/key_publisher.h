@@ -20,6 +20,7 @@ public:
   {
   }
 
+  virtual bool consume(VersionMessage& vm) { return false; }
   virtual bool consume(KeyMessage& data);
 
   virtual void setupConsumer()

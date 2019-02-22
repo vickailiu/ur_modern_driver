@@ -87,6 +87,7 @@ set(${PROJECT_NAME}_SOURCES
     src/ros/mb_publisher.cpp
     src/ros/rt_publisher.cpp
     src/ros/service_stopper.cpp
+    src/ros/key_publisher.cpp
     src/ros/trajectory_follower.cpp
     src/ros/urscript_handler.cpp
     src/tcp_socket.cpp

@@ -33,6 +33,8 @@ private:
     return true;
   }
 
+  virtual bool consume(KeyMessage& data) { return false; }
+
   void setupConsumer()
   {
   }

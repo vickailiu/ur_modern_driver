@@ -28,6 +28,7 @@ public:
   bool setToolVoltage(uint8_t voltage);
   bool setFlag(uint8_t pin, bool value);
   bool setPayload(double value);
+  bool sendDashboardCmd(const std::string &s);
 
 };
 

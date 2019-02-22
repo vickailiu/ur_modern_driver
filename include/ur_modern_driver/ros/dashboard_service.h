@@ -57,9 +57,8 @@ private:
 
     close(fd);
 
-
-    LOG_INFO("sendDashboardCmd called");
-    return (resp.result = commander_.sendDashboardCmd(req.cmd));
+//    LOG_INFO("sendDashboardCmd called");
+//    return (resp.result = commander_.sendDashboardCmd(req.cmd));
   }
 
 public:
