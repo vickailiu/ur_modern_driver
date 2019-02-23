@@ -1,6 +1,6 @@
 #include "ur_modern_driver/ros/key_publisher.h"
 
-void KeyPublisher::publishKeyMessage(const KeyMessage& data)
+void KeyPublisher::publishKeyMessage(const KeyMessage& data) const
 {
   emma_commons::URKeyMessage key_msg;
   key_msg.message_title = data.message_title;

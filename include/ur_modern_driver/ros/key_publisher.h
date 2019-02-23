@@ -13,7 +13,7 @@ private:
   NodeHandle nh_;
   Publisher key_message_pub_;
 
-  void publishKeyMessage(const KeyMessage& data);
+  void publishKeyMessage(const KeyMessage& data) const;
 public:
   KeyPublisher()
     : key_message_pub_(nh_.advertise<emma_commons::URKeyMessage>("ur_driver/key_message", 1))

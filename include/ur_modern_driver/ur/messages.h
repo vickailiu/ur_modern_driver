@@ -26,6 +26,9 @@ public:
   MessagePacket(uint64_t timestamp, uint8_t source) : timestamp(timestamp), source(source)
   {
   }
+  virtual ~MessagePacket()
+  {
+  }
   virtual bool parseWith(BinParser& bp) = 0;
   virtual bool consumeWith(URMessagePacketConsumer& consumer) = 0;
 
