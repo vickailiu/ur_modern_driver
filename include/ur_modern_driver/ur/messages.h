@@ -63,8 +63,8 @@ public:
   virtual bool parseWith(BinParser& bp);
   virtual bool consumeWith(URMessagePacketConsumer& consumer);
 
-  int8_t robot_message_code;
-  int8_t robot_message_argument;
+  int32_t robot_message_code;
+  int32_t robot_message_argument;
   std::string message_title;
   std::string text_message;
 };

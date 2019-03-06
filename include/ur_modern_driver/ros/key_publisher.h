@@ -20,16 +20,16 @@ public:
   {
   }
 
-  virtual bool consume(VersionMessage& vm) { return false; }
-  virtual bool consume(KeyMessage& data);
+  bool consume(VersionMessage& vm) { return true; }
+  bool consume(KeyMessage& data);
 
-  virtual void setupConsumer()
+  void setupConsumer()
   {
   }
-  virtual void teardownConsumer()
+  void teardownConsumer()
   {
   }
-  virtual void stopConsumer()
+  void stopConsumer()
   {
   }
 };

@@ -210,9 +210,9 @@ int main(int argc, char **argv)
   URProducer<MessagePacket> message_prod(message_stream, *message_parser);
   KeyPublisher key_pub;
 
-  vector<IConsumer<MessagePacket> *> message_vec{ &key_pub };
-  MultiConsumer<MessagePacket> message_cons(message_vec);
-  Pipeline<MessagePacket> message_pl(message_prod, message_cons, "MessagePacket", *notifier);
+//  vector<IConsumer<MessagePacket> *> message_vec{ &key_pub };
+//  MultiConsumer<MessagePacket> message_cons(message_vec);
+  Pipeline<MessagePacket> message_pl(message_prod, key_pub, "MessagePacket", *notifier);
 
   LOG_INFO("Starting main loop");
 

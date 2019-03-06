@@ -18,8 +18,9 @@ public:
 
     if (type != message_type::ROBOT_MESSAGE)
     {
-      LOG_WARN("Invalid message type recieved: %u", static_cast<uint8_t>(type));
-      return false;
+      // LOG_WARN("Invalid message type recieved: %u", static_cast<uint8_t>(type));
+      bp.consume();
+      return true;
     }
 
     uint64_t timestamp;
@@ -50,12 +51,16 @@ public:
         result.reset(km);
         break;
       }
-
-      default:
-        return false;
     }
 
     results.push_back(std::move(result));
-    return parsed;
+
+    if (!parsed)
+    {
+      LOG_WARN("message with type: %d could not be parsed", message_type);
+      bp.consume();
+    }
+
+    return true;
   }
 };
