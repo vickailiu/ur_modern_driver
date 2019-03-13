@@ -45,7 +45,7 @@ public:
       }
       case robot_message_type::ROBOT_MESSAGE_KEY:
       {
-        LOG_INFO("key message received");
+//        LOG_INFO("key message received");
         KeyMessage* km = new KeyMessage(timestamp, source);
         parsed = km->parseWith(bp);
         result.reset(km);
@@ -57,7 +57,7 @@ public:
 
     if (!parsed)
     {
-      LOG_WARN("message with type: %d could not be parsed", message_type);
+      LOG_WARN("message with type: %d could not be parsed", (int)message_type);
       bp.consume();
     }
 
