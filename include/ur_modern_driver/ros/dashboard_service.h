@@ -26,7 +26,7 @@ private:
     if(getaddrinfo("192.168.0.49", "29999", &info, &res) != 0 || !res)
     {
       perror("Could not get address for UR host");
-      return false;
+      return resp.result = false;
     }
 
     sockaddr_storage addr;
@@ -40,25 +40,26 @@ private:
     if(fd < 0)
     {
       perror("socket");
-      return false;
+      return resp.result = false;
     }
 
     if(connect(fd, (const sockaddr*)&addr, addrlen) != 0)
     {
       perror("Could not connect to UR dashboard");
-      return false;
+      return resp.result = false;
     }
 
     if(write(fd, req.cmd.c_str(), strlen(req.cmd.c_str())) != strlen(req.cmd.c_str()))
     {
       perror("Could not write to UR dashboard");
-      return false;
+      return resp.result = false;
     }
 
     close(fd);
 
 //    LOG_INFO("sendDashboardCmd called");
 //    return (resp.result = commander_.sendDashboardCmd(req.cmd));
+    return resp.result = true;
   }
 
 public:
