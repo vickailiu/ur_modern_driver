@@ -12,7 +12,7 @@ static const std::string POSITION_PROGRAM = R"(
 def driverProg():
 	MULT_jointstate = {{JOINT_STATE_REPLACE}}
 
-    position_deviation_warning(True, 0.01)
+    position_deviation_warning(True, 0.2)
 	SERVO_IDLE = 0
 	SERVO_RUNNING = 1
 	cmd_servo_state = SERVO_IDLE

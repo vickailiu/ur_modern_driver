@@ -15,6 +15,8 @@ private:
 
   bool sendDashboardCmd(emma_commons::URDashboardRequest& req, emma_commons::URDashboardResponse& resp)
   {
+    LOG_INFO("Calling dashboard with %s ", req.cmd.c_str());
+
     addrinfo info;
 
     memset(&info, 0, sizeof(info));
