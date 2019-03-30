@@ -25,7 +25,7 @@ private:
 
     addrinfo* res = 0;
 
-    if(getaddrinfo("192.168.0.49", "29999", &info, &res) != 0 || !res)
+    if(getaddrinfo("192.168.0.2", "29999", &info, &res) != 0 || !res)
     {
       perror("Could not get address for UR host");
       return resp.result = false;
