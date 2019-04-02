@@ -25,15 +25,15 @@
 }
 #define LOG_WARN(format...) \
 {\
-  char info[512]; \
-  sprintf(info, format);\
-  emma_commons::Log::EMMA_INFO(__FILE__, __LINE__, info, "ur_driver", true);\
+  char err[512]; \
+  sprintf(err, format);\
+  emma_commons::Log::EMMA_ERROR(__FILE__, __LINE__, err, "ur_driver");\
 }
 #define LOG_FATAL(format...) \
 {\
-  char info[512]; \
-  sprintf(info, format);\
-  emma_commons::Log::EMMA_INFO(__FILE__, __LINE__, info, "ur_driver", true);\
+  char err[512]; \
+  sprintf(err, format);\
+  emma_commons::Log::EMMA_ERROR(__FILE__, __LINE__, err, "ur_driver");\
 }
 
 #else
