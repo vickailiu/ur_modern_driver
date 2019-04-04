@@ -104,6 +104,7 @@ add_dependencies(ur_driver ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED
 target_link_libraries(ur_driver
   ur_hardware_interface
   ${catkin_LIBRARIES}
+  ${emma_log_LIBRARIES}
  )
 
 
