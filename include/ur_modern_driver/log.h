@@ -7,33 +7,33 @@
 
 #define LOG_DEBUG(format...) \
 {\
-  char info[512]; \
+  char info[2048]; \
   sprintf(info, format);\
-  emma_commons::Log::EMMA_INFO(__FILE__, __LINE__, info, "ur_driver", true);\
+  emma_commons::Log::EMMA_INFO(__FILE__, __LINE__, info, "ur_modern_driver", true);\
 }
 #define LOG_ERROR(format...)\
 {\
-  char err[512];\
+  char err[2048];\
   sprintf(err, format);\
-  emma_commons::Log::EMMA_ERROR(__FILE__, __LINE__, err, "ur_driver");\
+  emma_commons::Log::EMMA_ERROR(__FILE__, __LINE__, err, "ur_modern_driver");\
 }
 #define LOG_INFO(format...) \
 {\
-  char info[512]; \
+  char info[2048]; \
   sprintf(info, format);\
-  emma_commons::Log::EMMA_INFO(__FILE__, __LINE__, info, "ur_driver", true);\
+  emma_commons::Log::EMMA_INFO(__FILE__, __LINE__, info, "ur_modern_driver", true);\
 }
 #define LOG_WARN(format...) \
 {\
-  char err[512]; \
+  char err[2048]; \
   sprintf(err, format);\
-  emma_commons::Log::EMMA_ERROR(__FILE__, __LINE__, err, "ur_driver");\
+  emma_commons::Log::EMMA_ERROR(__FILE__, __LINE__, err, "ur_modern_driver");\
 }
 #define LOG_FATAL(format...) \
 {\
-  char err[512]; \
+  char err[2048]; \
   sprintf(err, format);\
-  emma_commons::Log::EMMA_ERROR(__FILE__, __LINE__, err, "ur_driver");\
+  emma_commons::Log::EMMA_ERROR(__FILE__, __LINE__, err, "ur_modern_driver");\
 }
 
 #else
