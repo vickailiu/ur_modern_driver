@@ -39,6 +39,7 @@ public:
   // does not contain "_actual" postfix in V1_X but
   // they're the same fields so share anyway
   cartesian_coord_t tool_vector_actual;
+  cartesian_coord_t tool_vector_target;
   cartesian_coord_t tcp_speed_actual;
 
   // gap here depending on version
@@ -85,7 +86,7 @@ public:
   virtual bool consumeWith(URRTPacketConsumer& consumer);
 
   std::array<double, 6> i_control;
-  cartesian_coord_t tool_vector_target;
+//  cartesian_coord_t tool_vector_target;
   cartesian_coord_t tcp_speed_target;
 
   std::array<double, 6> joint_modes;

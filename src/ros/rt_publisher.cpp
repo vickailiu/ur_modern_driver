@@ -46,6 +46,27 @@ bool RTPublisher::publishTool(RTShared& packet, Time& t)
   return true;
 }
 
+bool RTPublisher::publishTargetAndActual(RTShared& packet, Time& t)
+{
+  emma_commons::URToolMessage target_actual;
+  target_actual.header.stamp = t;
+  target_actual.target_position.x = packet.tool_vector_target.position.x;
+  target_actual.target_position.y = packet.tool_vector_target.position.y;
+  target_actual.target_position.z = packet.tool_vector_target.position.z;
+  target_actual.target_rotation.x = packet.tool_vector_target.rotation.x;
+  target_actual.target_rotation.y = packet.tool_vector_target.rotation.y;
+  target_actual.target_rotation.z = packet.tool_vector_target.rotation.z;
+  target_actual.actual_position.x = packet.tool_vector_actual.position.x;
+  target_actual.actual_position.y = packet.tool_vector_actual.position.y;
+  target_actual.actual_position.z = packet.tool_vector_actual.position.z;
+  target_actual.actual_rotation.x = packet.tool_vector_actual.rotation.x;
+  target_actual.actual_rotation.y = packet.tool_vector_actual.rotation.y;
+  target_actual.actual_rotation.z = packet.tool_vector_actual.rotation.z;
+
+  target_and_actual_pub_.publish(target_actual);
+  return true;
+}
+
 bool RTPublisher::publishTransform(RTShared& packet, Time& t)
 {
   auto tv = packet.tool_vector_actual;
@@ -69,13 +90,6 @@ bool RTPublisher::publishTransform(RTShared& packet, Time& t)
   transform.setRotation(quat);
 
   transform_broadcaster_.sendTransform(StampedTransform(transform, t, base_frame_, tool_frame_));
-
-  emma_commons::DoubleArray tool_pose_msg;
-  tool_pose_msg.values = {
-    tv.position.x, tv.position.y, tv.position.z,
-    tv.rotation.x / angle, tv.rotation.y / angle, tv.rotation.z / angle
-  };
-  tcp_pub_.publish(tool_pose_msg);
 
   return true;
 }
@@ -102,7 +116,7 @@ bool RTPublisher::publish(RTShared& packet)
   if (!temp_only_)
   {
     res = publishJoints(packet, time) && publishWrench(packet, time) && publishTool(packet, time) &&
-          publishTransform(packet, time);
+          publishTransform(packet, time) && publishTargetAndActual(packet, time);
   }
 
   return res && publishTemperature(packet, time);
