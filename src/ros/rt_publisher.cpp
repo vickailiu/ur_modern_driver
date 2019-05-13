@@ -59,15 +59,34 @@ bool RTPublisher::publishToolVector(RTShared& packet, Time& t)
   tool_vector.target_position.x = packet.tool_vector_target.position.x;
   tool_vector.target_position.y = packet.tool_vector_target.position.y;
   tool_vector.target_position.z = packet.tool_vector_target.position.z;
-  tool_vector.target_rotation.x = packet.tool_vector_target.rotation.x / angle_target;
-  tool_vector.target_rotation.y = packet.tool_vector_target.rotation.y / angle_target;
-  tool_vector.target_rotation.z = packet.tool_vector_target.rotation.z / angle_target;
+  if (angle_target < 1e-16)
+  {
+    tool_vector.target_rotation.x = 0;
+    tool_vector.target_rotation.y = 0;
+    tool_vector.target_rotation.z = 0;
+  }
+  else
+  {
+    tool_vector.target_rotation.x = packet.tool_vector_target.rotation.x / angle_target;
+    tool_vector.target_rotation.y = packet.tool_vector_target.rotation.y / angle_target;
+    tool_vector.target_rotation.z = packet.tool_vector_target.rotation.z / angle_target;
+  }
+
   tool_vector.actual_position.x = packet.tool_vector_actual.position.x;
   tool_vector.actual_position.y = packet.tool_vector_actual.position.y;
   tool_vector.actual_position.z = packet.tool_vector_actual.position.z;
-  tool_vector.actual_rotation.x = packet.tool_vector_actual.rotation.x / angle_actual;
-  tool_vector.actual_rotation.y = packet.tool_vector_actual.rotation.y / angle_actual;
-  tool_vector.actual_rotation.z = packet.tool_vector_actual.rotation.z / angle_actual;
+  if (angle_target < 1e-16)
+  {
+    tool_vector.actual_rotation.x = 0;
+    tool_vector.actual_rotation.y = 0;
+    tool_vector.actual_rotation.z = 0;
+  }
+  else
+  {
+    tool_vector.actual_rotation.x = packet.tool_vector_actual.rotation.x / angle_actual;
+    tool_vector.actual_rotation.y = packet.tool_vector_actual.rotation.y / angle_actual;
+    tool_vector.actual_rotation.z = packet.tool_vector_actual.rotation.z / angle_actual;
+  }
 
   tool_vector_pub_.publish(tool_vector);
   return true;
