@@ -56,15 +56,15 @@ bool RTPublisher::publishToolVector(RTShared& packet, Time& t)
   double angle_target = std::sqrt(std::pow(tv_target.rotation.x, 2) + std::pow(tv_target.rotation.y, 2) + std::pow(tv_target.rotation.z, 2));
   
   tool_vector.header.stamp = t;
-  tool_vector.target_position.x = packet.tool_vector_target.position.x / angle_target;
-  tool_vector.target_position.y = packet.tool_vector_target.position.y / angle_target;
-  tool_vector.target_position.z = packet.tool_vector_target.position.z / angle_target;
+  tool_vector.target_position.x = packet.tool_vector_target.position.x;
+  tool_vector.target_position.y = packet.tool_vector_target.position.y;
+  tool_vector.target_position.z = packet.tool_vector_target.position.z;
   tool_vector.target_rotation.x = packet.tool_vector_target.rotation.x / angle_target;
   tool_vector.target_rotation.y = packet.tool_vector_target.rotation.y / angle_target;
   tool_vector.target_rotation.z = packet.tool_vector_target.rotation.z / angle_target;
-  tool_vector.actual_position.x = packet.tool_vector_actual.position.x / angle_actual;
-  tool_vector.actual_position.y = packet.tool_vector_actual.position.y / angle_actual;
-  tool_vector.actual_position.z = packet.tool_vector_actual.position.z / angle_actual;
+  tool_vector.actual_position.x = packet.tool_vector_actual.position.x;
+  tool_vector.actual_position.y = packet.tool_vector_actual.position.y;
+  tool_vector.actual_position.z = packet.tool_vector_actual.position.z;
   tool_vector.actual_rotation.x = packet.tool_vector_actual.rotation.x / angle_actual;
   tool_vector.actual_rotation.y = packet.tool_vector_actual.rotation.y / angle_actual;
   tool_vector.actual_rotation.z = packet.tool_vector_actual.rotation.z / angle_actual;
