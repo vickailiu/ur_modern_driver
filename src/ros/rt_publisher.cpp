@@ -46,24 +46,30 @@ bool RTPublisher::publishTool(RTShared& packet, Time& t)
   return true;
 }
 
-bool RTPublisher::publishTargetAndActual(RTShared& packet, Time& t)
+bool RTPublisher::publishToolVector(RTShared& packet, Time& t)
 {
-  emma_commons::URToolMessage target_actual;
-  target_actual.header.stamp = t;
-  target_actual.target_position.x = packet.tool_vector_target.position.x;
-  target_actual.target_position.y = packet.tool_vector_target.position.y;
-  target_actual.target_position.z = packet.tool_vector_target.position.z;
-  target_actual.target_rotation.x = packet.tool_vector_target.rotation.x;
-  target_actual.target_rotation.y = packet.tool_vector_target.rotation.y;
-  target_actual.target_rotation.z = packet.tool_vector_target.rotation.z;
-  target_actual.actual_position.x = packet.tool_vector_actual.position.x;
-  target_actual.actual_position.y = packet.tool_vector_actual.position.y;
-  target_actual.actual_position.z = packet.tool_vector_actual.position.z;
-  target_actual.actual_rotation.x = packet.tool_vector_actual.rotation.x;
-  target_actual.actual_rotation.y = packet.tool_vector_actual.rotation.y;
-  target_actual.actual_rotation.z = packet.tool_vector_actual.rotation.z;
+  auto tv_actual = packet.tool_vector_actual;
+  auto tv_target = packet.tool_vector_target;
+  emma_commons::URToolMessage tool_vector;
 
-  target_and_actual_pub_.publish(target_actual);
+  double angle_actual = std::sqrt(std::pow(tv_actual.rotation.x, 2) + std::pow(tv_actual.rotation.y, 2) + std::pow(tv_actual.rotation.z, 2));
+  double angle_target = std::sqrt(std::pow(tv_target.rotation.x, 2) + std::pow(tv_target.rotation.y, 2) + std::pow(tv_target.rotation.z, 2));
+  
+  tool_vector.header.stamp = t;
+  tool_vector.target_position.x = packet.tool_vector_target.position.x / angle_target;
+  tool_vector.target_position.y = packet.tool_vector_target.position.y / angle_target;
+  tool_vector.target_position.z = packet.tool_vector_target.position.z / angle_target;
+  tool_vector.target_rotation.x = packet.tool_vector_target.rotation.x / angle_target;
+  tool_vector.target_rotation.y = packet.tool_vector_target.rotation.y / angle_target;
+  tool_vector.target_rotation.z = packet.tool_vector_target.rotation.z / angle_target;
+  tool_vector.actual_position.x = packet.tool_vector_actual.position.x / angle_actual;
+  tool_vector.actual_position.y = packet.tool_vector_actual.position.y / angle_actual;
+  tool_vector.actual_position.z = packet.tool_vector_actual.position.z / angle_actual;
+  tool_vector.actual_rotation.x = packet.tool_vector_actual.rotation.x / angle_actual;
+  tool_vector.actual_rotation.y = packet.tool_vector_actual.rotation.y / angle_actual;
+  tool_vector.actual_rotation.z = packet.tool_vector_actual.rotation.z / angle_actual;
+
+  tool_vector_pub_.publish(tool_vector);
   return true;
 }
 
@@ -116,7 +122,7 @@ bool RTPublisher::publish(RTShared& packet)
   if (!temp_only_)
   {
     res = publishJoints(packet, time) && publishWrench(packet, time) && publishTool(packet, time) &&
-          publishTransform(packet, time) && publishTargetAndActual(packet, time);
+          publishTransform(packet, time) && publishToolVector(packet, time);
   }
 
   return res && publishTemperature(packet, time);
