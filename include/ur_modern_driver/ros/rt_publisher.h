@@ -28,7 +28,7 @@ private:
   Publisher wrench_pub_;
   Publisher tool_vel_pub_;
   Publisher joint_temperature_pub_;
-  Publisher target_and_actual_pub_;
+  Publisher tool_vector_pub_;
   TransformBroadcaster transform_broadcaster_;
   std::vector<std::string> joint_names_;
   std::string base_frame_;
@@ -40,7 +40,7 @@ private:
   bool publishTool(RTShared& packet, Time& t);
   bool publishTransform(RTShared& packet, Time& t);
   bool publishTemperature(RTShared& packet, Time& t);
-  bool publishTargetAndActual(RTShared& packet, Time& t);
+  bool publishToolVector(RTShared& packet, Time& t);
 
   bool publish(RTShared& packet);
 
@@ -50,7 +50,7 @@ public:
     , wrench_pub_(nh_.advertise<geometry_msgs::WrenchStamped>("wrench", 1))
     , tool_vel_pub_(nh_.advertise<geometry_msgs::TwistStamped>("tool_velocity", 1))
     , joint_temperature_pub_(nh_.advertise<sensor_msgs::Temperature>("joint_temperature", 1))
-    , target_and_actual_pub_(nh_.advertise<emma_commons::URToolMessage>("target_actual", 1))
+    , tool_vector_pub_(nh_.advertise<emma_commons::URToolMessage>("tool_vector", 1))
     , base_frame_(base_frame)
     , tool_frame_(tool_frame)
     , temp_only_(temp_only)
