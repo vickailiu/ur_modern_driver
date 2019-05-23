@@ -18,8 +18,9 @@ public:
 
     if (type != message_type::ROBOT_MESSAGE)
     {
-      LOG_WARN("Invalid message type recieved: %u", static_cast<uint8_t>(type));
-      return false;
+      // LOG_WARN("Invalid message type recieved: %u", static_cast<uint8_t>(type));
+      bp.consume();
+      return true;
     }
 
     uint64_t timestamp;
@@ -42,12 +43,24 @@ public:
         result.reset(vm);
         break;
       }
-
-      default:
-        return false;
+      case robot_message_type::ROBOT_MESSAGE_KEY:
+      {
+//        LOG_INFO("key message received");
+        KeyMessage* km = new KeyMessage(timestamp, source);
+        parsed = km->parseWith(bp);
+        result.reset(km);
+        break;
+      }
     }
 
     results.push_back(std::move(result));
-    return parsed;
+
+    if (!parsed)
+    {
+      LOG_WARN("message with type: %d could not be parsed", (int)message_type);
+      bp.consume();
+    }
+
+    return true;
   }
 };

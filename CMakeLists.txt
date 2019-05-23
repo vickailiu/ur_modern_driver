@@ -25,6 +25,9 @@ find_package(catkin REQUIRED
 )
 
 
+find_package(emma_commons REQUIRED)
+
+
 catkin_package(
   INCLUDE_DIRS
     include
@@ -68,13 +71,14 @@ endif()
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${emma_commons_INCLUDE_DIRS}
 )
 
 # Hardware Interface
 add_library(ur_hardware_interface
   src/ros/controller.cpp
   src/ros/hardware_interface.cpp)
-target_link_libraries(ur_hardware_interface ${catkin_LIBRARIES})
+target_link_libraries(ur_hardware_interface ${catkin_LIBRARIES} ${emma_commons_LIBRARIES})
 
 
 set(${PROJECT_NAME}_SOURCES
@@ -83,6 +87,7 @@ set(${PROJECT_NAME}_SOURCES
     src/ros/mb_publisher.cpp
     src/ros/rt_publisher.cpp
     src/ros/service_stopper.cpp
+    src/ros/key_publisher.cpp
     src/ros/trajectory_follower.cpp
     src/ros/urscript_handler.cpp
     src/tcp_socket.cpp
@@ -99,6 +104,7 @@ add_dependencies(ur_driver ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED
 target_link_libraries(ur_driver
   ur_hardware_interface
   ${catkin_LIBRARIES}
+  ${emma_log_LIBRARIES}
  )
 
 

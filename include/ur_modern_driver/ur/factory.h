@@ -33,6 +33,8 @@ private:
     return true;
   }
 
+  bool consume(KeyMessage& data) { return true; }
+
   void setupConsumer()
   {
   }
@@ -101,6 +103,11 @@ public:
       else
         return std::unique_ptr<URParser<StatePacket>>(new URStateParser_V3_5);
     }
+  }
+
+  std::unique_ptr<URParser<MessagePacket>> getMessageParser()
+  {
+    return std::unique_ptr<URParser<MessagePacket>>(new URMessageParser);
   }
 
   std::unique_ptr<URParser<RTPacket>> getRTParser()

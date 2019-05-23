@@ -46,6 +46,52 @@ bool RTPublisher::publishTool(RTShared& packet, Time& t)
   return true;
 }
 
+bool RTPublisher::publishToolVector(RTShared& packet, Time& t)
+{
+  auto tv_actual = packet.tool_vector_actual;
+  auto tv_target = packet.tool_vector_target;
+  emma_commons::URToolMessage tool_vector;
+
+  double angle_actual = std::sqrt(std::pow(tv_actual.rotation.x, 2) + std::pow(tv_actual.rotation.y, 2) + std::pow(tv_actual.rotation.z, 2));
+  double angle_target = std::sqrt(std::pow(tv_target.rotation.x, 2) + std::pow(tv_target.rotation.y, 2) + std::pow(tv_target.rotation.z, 2));
+  
+  tool_vector.header.stamp = t;
+  tool_vector.target_position.x = packet.tool_vector_target.position.x;
+  tool_vector.target_position.y = packet.tool_vector_target.position.y;
+  tool_vector.target_position.z = packet.tool_vector_target.position.z;
+  if (angle_target < 1e-16)
+  {
+    tool_vector.target_rotation.x = 0;
+    tool_vector.target_rotation.y = 0;
+    tool_vector.target_rotation.z = 0;
+  }
+  else
+  {
+    tool_vector.target_rotation.x = packet.tool_vector_target.rotation.x / angle_target;
+    tool_vector.target_rotation.y = packet.tool_vector_target.rotation.y / angle_target;
+    tool_vector.target_rotation.z = packet.tool_vector_target.rotation.z / angle_target;
+  }
+
+  tool_vector.actual_position.x = packet.tool_vector_actual.position.x;
+  tool_vector.actual_position.y = packet.tool_vector_actual.position.y;
+  tool_vector.actual_position.z = packet.tool_vector_actual.position.z;
+  if (angle_target < 1e-16)
+  {
+    tool_vector.actual_rotation.x = 0;
+    tool_vector.actual_rotation.y = 0;
+    tool_vector.actual_rotation.z = 0;
+  }
+  else
+  {
+    tool_vector.actual_rotation.x = packet.tool_vector_actual.rotation.x / angle_actual;
+    tool_vector.actual_rotation.y = packet.tool_vector_actual.rotation.y / angle_actual;
+    tool_vector.actual_rotation.z = packet.tool_vector_actual.rotation.z / angle_actual;
+  }
+
+  tool_vector_pub_.publish(tool_vector);
+  return true;
+}
+
 bool RTPublisher::publishTransform(RTShared& packet, Time& t)
 {
   auto tv = packet.tool_vector_actual;
@@ -95,7 +141,7 @@ bool RTPublisher::publish(RTShared& packet)
   if (!temp_only_)
   {
     res = publishJoints(packet, time) && publishWrench(packet, time) && publishTool(packet, time) &&
-          publishTransform(packet, time);
+          publishTransform(packet, time) && publishToolVector(packet, time);
   }
 
   return res && publishTemperature(packet, time);

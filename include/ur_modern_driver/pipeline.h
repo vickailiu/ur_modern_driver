@@ -132,6 +132,7 @@ private:
     {
       if (!producer_.tryGet(products))
       {
+        LOG_INFO("producer_.tryGet(products): %s", name_.c_str());
         break;
       }
 
@@ -169,7 +170,10 @@ private:
       }
 
       if (!consumer_.consume(std::move(product)))
+      {
+        LOG_INFO("consumer_.consume(std::move(product)): %s", name_.c_str());
         break;
+      }
     }
     consumer_.teardownConsumer();
     LOG_DEBUG("Pipeline consumer ended! <%s>", name_.c_str());

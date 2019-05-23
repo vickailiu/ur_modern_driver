@@ -3,12 +3,38 @@
 
 #ifdef ROS_BUILD
 #include <ros/ros.h>
+#include "emma_commons/log.h"
 
-#define LOG_DEBUG ROS_DEBUG
-#define LOG_WARN ROS_WARN
-#define LOG_INFO ROS_INFO
-#define LOG_ERROR ROS_ERROR
-#define LOG_FATAL ROS_FATAL
+#define LOG_DEBUG(format...) \
+{\
+  char info[2048]; \
+  sprintf(info, format);\
+  emma_commons::Log::EMMA_INFO(__FILE__, __LINE__, info, "ur_modern_driver", true);\
+}
+#define LOG_ERROR(format...)\
+{\
+  char err[2048];\
+  sprintf(err, format);\
+  emma_commons::Log::EMMA_ERROR(__FILE__, __LINE__, err, "ur_modern_driver");\
+}
+#define LOG_INFO(format...) \
+{\
+  char info[2048]; \
+  sprintf(info, format);\
+  emma_commons::Log::EMMA_INFO(__FILE__, __LINE__, info, "ur_modern_driver", true);\
+}
+#define LOG_WARN(format...) \
+{\
+  char err[2048]; \
+  sprintf(err, format);\
+  emma_commons::Log::EMMA_ERROR(__FILE__, __LINE__, err, "ur_modern_driver");\
+}
+#define LOG_FATAL(format...) \
+{\
+  char err[2048]; \
+  sprintf(err, format);\
+  emma_commons::Log::EMMA_ERROR(__FILE__, __LINE__, err, "ur_modern_driver");\
+}
 
 #else
 

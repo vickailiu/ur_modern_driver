@@ -26,6 +26,9 @@ public:
   MessagePacket(uint64_t timestamp, uint8_t source) : timestamp(timestamp), source(source)
   {
   }
+  virtual ~MessagePacket()
+  {
+  }
   virtual bool parseWith(BinParser& bp) = 0;
   virtual bool consumeWith(URMessagePacketConsumer& consumer) = 0;
 
@@ -48,4 +51,20 @@ public:
   uint8_t minor_version;
   int32_t svn_version;
   std::string build_date;
+};
+
+class KeyMessage : public MessagePacket
+{
+public:
+  KeyMessage(uint64_t timestamp, uint8_t source) : MessagePacket(timestamp, source)
+  {
+  }
+
+  virtual bool parseWith(BinParser& bp);
+  virtual bool consumeWith(URMessagePacketConsumer& consumer);
+
+  int32_t robot_message_code;
+  int32_t robot_message_argument;
+  std::string message_title;
+  std::string text_message;
 };

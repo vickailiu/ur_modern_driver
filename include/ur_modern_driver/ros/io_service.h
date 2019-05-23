@@ -10,6 +10,8 @@
 #include "ur_modern_driver/log.h"
 #include "ur_modern_driver/ur/commander.h"
 
+#include "emma_commons/URDashboard.h"
+
 class IOService
 {
 private:

@@ -43,8 +43,13 @@ class URMessagePacketConsumer : public IConsumer<MessagePacket>
 public:
   virtual bool consume(shared_ptr<MessagePacket> packet)
   {
-    return packet->consumeWith(*this);
+    if (packet != 0)
+        return packet->consumeWith(*this);
+    else
+        return true;
   }
 
   virtual bool consume(VersionMessage& message) = 0;
+  virtual bool consume(KeyMessage& message) = 0;
+
 };

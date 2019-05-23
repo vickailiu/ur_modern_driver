@@ -9,10 +9,12 @@
 #include "ur_modern_driver/ros/action_server.h"
 #include "ur_modern_driver/ros/controller.h"
 #include "ur_modern_driver/ros/io_service.h"
+#include "ur_modern_driver/ros/dashboard_service.h"
 #include "ur_modern_driver/ros/lowbandwidth_trajectory_follower.h"
 #include "ur_modern_driver/ros/mb_publisher.h"
 #include "ur_modern_driver/ros/rt_publisher.h"
 #include "ur_modern_driver/ros/service_stopper.h"
+#include "ur_modern_driver/ros/key_publisher.h"
 #include "ur_modern_driver/ros/trajectory_follower.h"
 #include "ur_modern_driver/ros/urscript_handler.h"
 #include "ur_modern_driver/ur/commander.h"
@@ -38,6 +40,7 @@ static const std::string SHUTDOWN_ON_DISCONNECT_ARG("~shutdown_on_disconnect");
 static const std::vector<std::string> DEFAULT_JOINTS = { "shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint",
                                                          "wrist_1_joint",      "wrist_2_joint",       "wrist_3_joint" };
 
+static const int UR_DB_PORT = 29999;
 static const int UR_SECONDARY_PORT = 30002;
 static const int UR_RT_PORT = 30003;
 
@@ -189,7 +192,7 @@ int main(int argc, char **argv)
   MultiConsumer<RTPacket> rt_cons(rt_vec);
   Pipeline<RTPacket> rt_pl(rt_prod, rt_cons, "RTPacket", *notifier);
 
-  // Message packets
+  // State packets
   auto state_parser = factory.getStateParser();
   URStream state_stream(args.host, UR_SECONDARY_PORT);
   URProducer<StatePacket> state_prod(state_stream, *state_parser);
@@ -201,13 +204,28 @@ int main(int argc, char **argv)
   MultiConsumer<StatePacket> state_cons(state_vec);
   Pipeline<StatePacket> state_pl(state_prod, state_cons, "StatePacket", *notifier);
 
+  // Message packets
+  auto message_parser = factory.getMessageParser();
+  URStream message_stream(args.host, UR_PRIMARY_PORT);
+  URProducer<MessagePacket> message_prod(message_stream, *message_parser);
+  KeyPublisher key_pub;
+
+//  vector<IConsumer<MessagePacket> *> message_vec{ &key_pub };
+//  MultiConsumer<MessagePacket> message_cons(message_vec);
+  Pipeline<MessagePacket> message_pl(message_prod, key_pub, "MessagePacket", *notifier);
+
   LOG_INFO("Starting main loop");
 
   rt_pl.run();
   state_pl.run();
+  message_pl.run();
 
   auto state_commander = factory.getCommander(state_stream);
   IOService io_service(*state_commander);
+
+  URStream dashboard_stream(args.host, UR_DB_PORT);
+  auto dashboard_commander = factory.getCommander(dashboard_stream);
+  DashboardService dashboard_service(*dashboard_commander);
 
   if (action_server)
     action_server->start();
@@ -218,6 +236,7 @@ int main(int argc, char **argv)
 
   rt_pl.stop();
   state_pl.stop();
+  message_pl.stop();
 
   if (controller)
     delete controller;
