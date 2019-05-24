@@ -92,6 +92,17 @@ bool RTPublisher::publishToolVector(RTShared& packet, Time& t)
   return true;
 }
 
+bool RTPublisher::publishPosition(RTShared& packet, Time& t)
+{
+  emma_commons::URPositionMessage position_msg;
+  position_msg.header.stamp = t;
+  position_msg.target_position.assign(packet.q_target.begin(), packet.q_target.end());
+  position_msg.actual_position.assign(packet.q_actual.begin(), packet.q_actual.end());
+
+  position_pub_.publish(position_msg);
+  return true;
+}
+
 bool RTPublisher::publishTransform(RTShared& packet, Time& t)
 {
   auto tv = packet.tool_vector_actual;
@@ -141,7 +152,7 @@ bool RTPublisher::publish(RTShared& packet)
   if (!temp_only_)
   {
     res = publishJoints(packet, time) && publishWrench(packet, time) && publishTool(packet, time) &&
-          publishTransform(packet, time) && publishToolVector(packet, time);
+          publishTransform(packet, time) && publishToolVector(packet, time) && publishPosition(packet, time);
   }
 
   return res && publishTemperature(packet, time);
