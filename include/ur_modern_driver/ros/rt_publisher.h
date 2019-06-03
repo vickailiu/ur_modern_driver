@@ -14,6 +14,7 @@
 #include "ur_modern_driver/ur/consumer.h"
 #include "emma_commons/URToolMessage.h"
 #include "emma_commons/URPositionMessage.h"
+#include "emma_commons/URCurrentMessage.h"
 
 using namespace ros;
 using namespace tf;
@@ -31,6 +32,7 @@ private:
   Publisher joint_temperature_pub_;
   Publisher tool_vector_pub_;
   Publisher position_pub_;
+  Publisher current_pub_;
   TransformBroadcaster transform_broadcaster_;
   std::vector<std::string> joint_names_;
   std::string base_frame_;
@@ -44,6 +46,7 @@ private:
   bool publishTemperature(RTShared& packet, Time& t);
   bool publishToolVector(RTShared& packet, Time& t);
   bool publishPosition(RTShared& packet, Time& t);
+  bool publishCurrent(RTShared& packet, Time& t);
 
   bool publish(RTShared& packet);
 
@@ -55,6 +58,7 @@ public:
     , joint_temperature_pub_(nh_.advertise<sensor_msgs::Temperature>("joint_temperature", 1))
     , tool_vector_pub_(nh_.advertise<emma_commons::URToolMessage>("tool_vector", 1))
     , position_pub_(nh_.advertise<emma_commons::URPositionMessage>("joint_position", 1))
+    , current_pub_(nh_.advertise<emma_commons::URCurrentMessage>("joint_current", 1))
     , base_frame_(base_frame)
     , tool_frame_(tool_frame)
     , temp_only_(temp_only)
